@@ -167,7 +167,7 @@ export default function TVEpisodesSection({
             {/* Dropdown Menu */}
             {isDropdownOpen && (
               <div className="absolute left-0 top-full mt-2.5 z-50 min-w-[210px] bg-[#161618]/90 backdrop-blur-3xl border border-white/[0.18] rounded-2xl p-2 shadow-[0_16px_40px_rgba(0,0,0,0.7),inset_0_1px_0_0_rgba(255,255,255,0.18)] animate-in fade-in slide-in-from-top-2 duration-150">
-                <div className="max-h-64 overflow-y-auto custom-scrollbar flex flex-col gap-1">
+                <div className="max-h-64 overflow-y-auto filter-scrollbar overscroll-contain pr-1 scroll-smooth flex flex-col gap-1">
                   {filteredSeasons.map((season: any) => {
                     const isCurrent = season.season_number === selectedSeason;
                     return (

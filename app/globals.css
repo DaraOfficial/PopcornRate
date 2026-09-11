@@ -62,4 +62,36 @@ body {
       scrollbar-width: thin;
     }
   }
+
+  /* Sleek custom scrollbar for filter dropdowns & glass popovers */
+  .filter-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+    overscroll-behavior: contain;
+  }
+
+  .filter-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .filter-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+    margin-block: 6px;
+  }
+
+  .filter-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.22);
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: background-color 0.2s ease;
+  }
+
+  .filter-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.45);
+  }
+
+  .filter-scrollbar::-webkit-scrollbar-thumb:active {
+    background: rgba(255, 255, 255, 0.7);
+  }
 }

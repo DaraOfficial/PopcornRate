@@ -55,11 +55,11 @@ function SearchInput() {
           <input
             ref={inputRef}
             name="q"
-            defaultValue={searchParams.get("q") || ""}
+            defaultValue={searchParams?.get("q") || ""}
             placeholder="Search..."
             className="w-full bg-white/[0.1] border border-white/[0.12] rounded-full px-3 py-1 text-[13px] text-white placeholder:text-white/45 outline-none focus:border-white/30 transition-colors"
             onBlur={() => {
-              if (!searchParams.get("q")) setIsOpen(false);
+              if (!searchParams?.get("q")) setIsOpen(false);
             }}
           />
         </form>
