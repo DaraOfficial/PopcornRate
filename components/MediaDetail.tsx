@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { getImageUrl } from "@/lib/tmdb";
 import {
   ChevronLeft,
@@ -15,9 +16,21 @@ import {
   Volume2,
   VolumeX,
   X,
+  Share2,
+  ExternalLink,
+  Tv,
+  Film,
+  Calendar,
+  Clock,
+  Globe,
+  Quote,
+  Star,
+  Clapperboard,
+  Layers,
 } from "lucide-react";
 import MovieCard from "./MovieCard";
 import TVEpisodesSection from "./TVEpisodesSection";
+import ScrollableRow from "./ScrollableRow";
 
 export default function MediaDetail({
   media,
@@ -28,6 +41,7 @@ export default function MediaDetail({
   type: "movie" | "tv";
   initialSeasonData?: any;
 }) {
+  const router = useRouter();
   const [isTrailerOpen, setIsTrailerOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
@@ -59,10 +73,16 @@ export default function MediaDetail({
     type === "movie" ? media.release_date : media.first_air_date;
 
   let year = "";
+  let fullReleaseDate = "";
   if (releaseDateStr) {
     const parsedDate = new Date(releaseDateStr);
     if (!isNaN(parsedDate.getTime())) {
       year = String(parsedDate.getFullYear());
+      fullReleaseDate = parsedDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
     }
   }
 
@@ -78,8 +98,18 @@ export default function MediaDetail({
       ? `${media.number_of_seasons} ${media.number_of_seasons > 1 ? "Seasons" : "Season"}`
       : "";
 
-  const cast = media.credits?.cast?.slice(0, 10) || [];
+  const cast = media.credits?.cast?.slice(0, 24) || [];
   const recommendations = media.recommendations?.results || [];
+
+  // Director or Creator
+  const director =
+    type === "movie"
+      ? media.credits?.crew?.find((c: any) => c.job === "Director")?.name
+      : null;
+  const creator =
+    type === "tv" && media.created_by && media.created_by.length > 0
+      ? media.created_by.map((c: any) => c.name).join(", ")
+      : null;
 
   // Best logo in English or without language tag
   const logo =
@@ -107,11 +137,63 @@ export default function MediaDetail({
         : (Math.round(ratingValue * 10) / 10).toString()
       : "NR";
 
+  const voteCountFormatted =
+    media.vote_count > 999
+      ? `${(media.vote_count / 1000).toFixed(1)}k`
+      : media.vote_count
+      ? String(media.vote_count)
+      : null;
+
+  // Watch Providers (Streaming options)
+  const watchProvidersObj = media["watch/providers"]?.results;
+  const regionProviders =
+    watchProvidersObj?.US ||
+    (watchProvidersObj ? Object.values(watchProvidersObj)[0] : null);
+  const streamProviders: any[] = regionProviders?.flatrate || [];
+  const rentProviders: any[] = regionProviders?.rent || [];
+  const buyProviders: any[] = regionProviders?.buy || [];
+  const justWatchLink = regionProviders?.link;
+
+  // Reviews
+  const reviewsList: any[] = media.reviews?.results || [];
+  const featuredReviews = reviewsList.slice(0, 2);
+
   const triggerToast = (msg: string) => {
     setToastMsg(msg);
     setTimeout(() => {
       setToastMsg((prev) => (prev === msg ? null : prev));
     }, 2800);
+  };
+
+  const handleBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/");
+    }
+  };
+
+  const handleShare = async () => {
+    if (typeof window === "undefined") return;
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${title} - Popcorn Rate`,
+          text: `Check out ${title} on Popcorn Rate!`,
+          url,
+        });
+        return;
+      } catch {
+        // user cancelled or fallback
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      triggerToast("Link copied to clipboard!");
+    } catch {
+      triggerToast("Failed to copy link");
+    }
   };
 
   const toggleWatchlist = () => {
@@ -159,34 +241,60 @@ export default function MediaDetail({
     }
   };
 
+  const formatCurrency = (amount: number) => {
+    if (!amount || amount <= 0) return null;
+    if (amount >= 1_000_000_000) {
+      return `$${(amount / 1_000_000_000).toFixed(1)}B`;
+    }
+    if (amount >= 1_000_000) {
+      return `$${(amount / 1_000_000).toFixed(1)}M`;
+    }
+    return `$${amount.toLocaleString()}`;
+  };
+
   return (
-    <main className="relative min-h-screen bg-black text-white selection:bg-white/30 pb-32 font-sans">
-      {/* Navigation (Top Left) */}
-      <Link
-        href="/"
-        className="absolute top-6 left-6 md:top-8 md:left-8 z-50 flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] text-white/80 hover:text-white hover:bg-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-90 transition-all duration-200 ease-out"
-        aria-label="Go back"
-      >
-        <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 mr-0.5" strokeWidth={2.2} />
-      </Link>
+    <main className="relative min-h-screen bg-black text-white selection:bg-white/30 pb-24 font-sans">
+      {/* Top Floating Action Bar */}
+      <div className="absolute top-6 left-6 right-6 md:top-8 md:left-8 md:right-8 z-50 flex items-center justify-between pointer-events-none">
+        {/* Navigation Back Button */}
+        <button
+          onClick={handleBack}
+          className="pointer-events-auto flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] text-white/85 hover:text-white hover:bg-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-90 transition-all duration-200 ease-out cursor-pointer"
+          aria-label="Go back"
+        >
+          <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 mr-0.5" strokeWidth={2.2} />
+        </button>
 
-      {/* Audio / Mute Control (Top Right) */}
-      <button
-        onClick={() => {
-          setIsMuted(!isMuted);
-          triggerToast(isMuted ? "Audio enabled" : "Audio muted");
-        }}
-        className="absolute top-6 right-6 md:top-8 md:right-8 z-50 flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] text-white/80 hover:text-white hover:bg-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-90 transition-all duration-200 ease-out cursor-pointer"
-        aria-label={isMuted ? "Unmute" : "Mute"}
-      >
-        {isMuted ? (
-          <VolumeX className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2.2} />
-        ) : (
-          <Volume2 className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2.2} />
-        )}
-      </button>
+        {/* Right Actions: Share & Audio Controls */}
+        <div className="pointer-events-auto flex items-center gap-2.5">
+          <button
+            onClick={handleShare}
+            className="flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] text-white/80 hover:text-white hover:bg-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-90 transition-all duration-200 ease-out cursor-pointer"
+            aria-label="Share"
+            title="Share this title"
+          >
+            <Share2 className="w-4 h-4 md:w-4.5 md:h-4.5" strokeWidth={2.2} />
+          </button>
 
-      {/* Hero Section (Exact Match to User Reference) */}
+          <button
+            onClick={() => {
+              setIsMuted(!isMuted);
+              triggerToast(isMuted ? "Audio enabled" : "Audio muted");
+            }}
+            className="flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] text-white/80 hover:text-white hover:bg-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-90 transition-all duration-200 ease-out cursor-pointer"
+            aria-label={isMuted ? "Unmute" : "Mute"}
+            title={isMuted ? "Unmute" : "Mute"}
+          >
+            {isMuted ? (
+              <VolumeX className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2.2} />
+            ) : (
+              <Volume2 className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2.2} />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Hero Section */}
       <div className="relative w-full min-h-[75vh] md:min-h-[85vh] lg:min-h-[88vh] flex flex-col justify-end overflow-hidden">
         {/* Full-bleed Cinematic Backdrop */}
         {media.backdrop_path ? (
@@ -199,7 +307,7 @@ export default function MediaDetail({
               priority
             />
             {/* Cinematic Gradient Vignettes */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-transparent" />
             <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/45 to-transparent w-full md:w-4/5" />
             <div className="absolute inset-0 bg-black/15" />
           </div>
@@ -227,12 +335,24 @@ export default function MediaDetail({
               </h1>
             )}
 
-            {/* Metadata Line: ★ 6 · 2026 · 1h 55m · Family · Fantasy · Comedy */}
+            {/* Tagline if available */}
+            {media.tagline && (
+              <p className="text-sm md:text-[15px] text-amber-200/90 font-medium italic mb-3.5 max-w-xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+                &ldquo;{media.tagline}&rdquo;
+              </p>
+            )}
+
+            {/* Metadata Line: ★ 6.8 (4.2k) · 2026 · 1h 55m · Family · Fantasy · Comedy */}
             <div className="flex flex-wrap items-center gap-2 text-xs sm:text-[13.5px] md:text-[14px] text-white/80 font-medium mb-3.5 select-none">
               {ratingValue > 0 && (
-                <span className="text-white font-bold flex items-center gap-1">
+                <span className="text-white font-bold flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded-full border border-white/10 backdrop-blur-md">
                   <span className="text-amber-400">★</span>
                   <span>{ratingFormatted}</span>
+                  {voteCountFormatted && (
+                    <span className="text-white/50 text-[11.5px] font-normal ml-0.5">
+                      ({voteCountFormatted})
+                    </span>
+                  )}
                 </span>
               )}
               {year && (
@@ -245,6 +365,14 @@ export default function MediaDetail({
                 <>
                   <span className="text-white/40">·</span>
                   <span>{runtimeStr}</span>
+                </>
+              )}
+              {media.status && (
+                <>
+                  <span className="text-white/40">·</span>
+                  <span className="text-white/70 uppercase tracking-wider text-[11px] px-2 py-0.5 rounded bg-white/5 border border-white/10 font-semibold">
+                    {media.status}
+                  </span>
                 </>
               )}
               {genresList.length > 0 && (
@@ -273,10 +401,12 @@ export default function MediaDetail({
                     triggerToast("No trailer video preview found");
                   }
                 }}
-                className="flex items-center gap-2 bg-white text-black font-semibold text-[14px] sm:text-[15px] px-6 sm:px-7 py-2.5 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.3),0_1px_2px_rgba(0,0,0,0.1)] hover:bg-white/95 active:scale-95 transition-all duration-200 cursor-pointer"
+                className="flex items-center justify-center gap-2 bg-white text-black font-semibold text-[14px] sm:text-[15px] w-10 h-10 sm:w-auto sm:h-auto sm:px-7 sm:py-2.5 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.3),0_1px_2px_rgba(0,0,0,0.1)] hover:bg-white/95 active:scale-95 transition-all duration-200 cursor-pointer"
+                title="Play"
+                aria-label="Play"
               >
-                <Play className="w-4 h-4 fill-current" />
-                <span>Play</span>
+                <Play className="w-4 h-4 fill-current ml-0.5 sm:ml-0" />
+                <span className="hidden sm:inline">Play</span>
               </button>
 
               {/* 2. Add to Watchlist (+) Button */}
@@ -296,24 +426,30 @@ export default function MediaDetail({
               {/* 3. Download Button */}
               <button
                 onClick={handleDownload}
-                className="flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full bg-[#161618]/70 hover:bg-white/[0.15] border border-white/[0.18] shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] text-white text-[13.5px] sm:text-[14px] font-medium active:scale-95 transition-all duration-200 backdrop-blur-2xl cursor-pointer"
+                className="flex items-center justify-center gap-2 w-10 h-10 sm:w-auto sm:h-auto sm:px-5 sm:py-2.5 rounded-full bg-[#161618]/70 hover:bg-white/[0.15] border border-white/[0.18] shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] text-white text-[13.5px] sm:text-[14px] font-medium active:scale-95 transition-all duration-200 backdrop-blur-2xl cursor-pointer"
+                title={isDownloaded ? "Downloaded" : "Download"}
+                aria-label={isDownloaded ? "Downloaded" : "Download"}
               >
                 {isDownloaded ? (
                   <Check className="w-4 h-4 text-emerald-400" strokeWidth={2.2} />
                 ) : (
                   <Download className="w-4 h-4" strokeWidth={2.2} />
                 )}
-                <span>{isDownloaded ? "Downloaded" : "Download"}</span>
+                <span className="hidden sm:inline">{isDownloaded ? "Downloaded" : "Download"}</span>
               </button>
 
               {/* 4. Similars Button */}
-              <button
-                onClick={scrollToSimilar}
-                className="flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full bg-[#161618]/70 hover:bg-white/[0.15] border border-white/[0.18] shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] text-white text-[13.5px] sm:text-[14px] font-medium active:scale-95 transition-all duration-200 backdrop-blur-2xl cursor-pointer"
-              >
-                <Sparkles className="w-4 h-4 text-amber-300" strokeWidth={2.2} />
-                <span>Similars</span>
-              </button>
+              {recommendations.length > 0 && (
+                <button
+                  onClick={scrollToSimilar}
+                  className="flex items-center justify-center gap-2 w-10 h-10 sm:w-auto sm:h-auto sm:px-5 sm:py-2.5 rounded-full bg-[#161618]/70 hover:bg-white/[0.15] border border-white/[0.18] shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] text-white text-[13.5px] sm:text-[14px] font-medium active:scale-95 transition-all duration-200 backdrop-blur-2xl cursor-pointer"
+                  title="Similars"
+                  aria-label="Similars"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-300" strokeWidth={2.2} />
+                  <span className="hidden sm:inline">Similars</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -339,7 +475,7 @@ export default function MediaDetail({
           >
             <button
               onClick={() => setIsTrailerOpen(false)}
-              className="absolute top-4 right-4 z-10 w-10 h-10 bg-[#161618]/80 hover:bg-white/[0.15] border border-white/[0.18] rounded-full flex items-center justify-center text-white/80 hover:text-white transition-all backdrop-blur-2xl shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-90"
+              className="absolute top-4 right-4 z-10 w-10 h-10 bg-[#161618]/80 hover:bg-white/[0.15] border border-white/[0.18] rounded-full flex items-center justify-center text-white/80 hover:text-white transition-all backdrop-blur-2xl shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-90 cursor-pointer"
               aria-label="Close trailer modal"
             >
               <X className="w-5 h-5" strokeWidth={2.2} />
@@ -359,7 +495,131 @@ export default function MediaDetail({
 
       {/* Main Content Details */}
       <div className="container mx-auto px-6 md:px-12 lg:px-16 max-w-[1440px] mt-10 md:mt-14">
-        {/* TV Episodes Section (matching user's reference image) */}
+        {/* Where to Watch / Streaming Options Card */}
+        {(streamProviders.length > 0 || rentProviders.length > 0 || buyProviders.length > 0) && (
+          <div className="mb-14 p-5 sm:p-6 rounded-3xl bg-[#161618]/80 border border-white/[0.12] backdrop-blur-2xl shadow-[0_12px_36px_rgba(0,0,0,0.4)]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-400">
+                  <Tv className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white tracking-tight">Where to Watch</h3>
+                  <p className="text-xs text-white/50">Streaming, rent and purchase options</p>
+                </div>
+              </div>
+
+              {justWatchLink && (
+                <a
+                  href={justWatchLink}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-flex items-center gap-1.5 text-xs text-white/60 hover:text-white transition-colors bg-white/5 hover:bg-white/10 border border-white/10 px-3.5 py-1.5 rounded-full self-start sm:self-auto"
+                >
+                  <span>Powered by JustWatch</span>
+                  <ExternalLink className="w-3 h-3 text-white/50" />
+                </a>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-5">
+              {/* Stream With Subscription */}
+              {streamProviders.length > 0 && (
+                <div>
+                  <span className="text-xs uppercase tracking-wider font-semibold text-emerald-400 block mb-3 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    Stream
+                  </span>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    {streamProviders.map((prov: any) => (
+                      <div
+                        key={prov.provider_id}
+                        className="flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 px-3 py-1.5 rounded-2xl transition-all"
+                        title={prov.provider_name}
+                      >
+                        {prov.logo_path && (
+                          <div className="relative w-6 h-6 rounded-lg overflow-hidden shrink-0">
+                            <Image
+                              src={getImageUrl(prov.logo_path, "w500")}
+                              alt={prov.provider_name}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        )}
+                        <span className="text-xs font-medium text-white/90">{prov.provider_name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Rent Options */}
+              {rentProviders.length > 0 && (
+                <div>
+                  <span className="text-xs uppercase tracking-wider font-semibold text-amber-400 block mb-3 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                    Rent
+                  </span>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    {rentProviders.slice(0, 6).map((prov: any) => (
+                      <div
+                        key={prov.provider_id}
+                        className="flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 px-3 py-1.5 rounded-2xl transition-all"
+                        title={prov.provider_name}
+                      >
+                        {prov.logo_path && (
+                          <div className="relative w-6 h-6 rounded-lg overflow-hidden shrink-0">
+                            <Image
+                              src={getImageUrl(prov.logo_path, "w500")}
+                              alt={prov.provider_name}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        )}
+                        <span className="text-xs font-medium text-white/90">{prov.provider_name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Buy Options */}
+              {buyProviders.length > 0 && (
+                <div>
+                  <span className="text-xs uppercase tracking-wider font-semibold text-blue-400 block mb-3 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-blue-400"></span>
+                    Buy
+                  </span>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    {buyProviders.slice(0, 6).map((prov: any) => (
+                      <div
+                        key={prov.provider_id}
+                        className="flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 px-3 py-1.5 rounded-2xl transition-all"
+                        title={prov.provider_name}
+                      >
+                        {prov.logo_path && (
+                          <div className="relative w-6 h-6 rounded-lg overflow-hidden shrink-0">
+                            <Image
+                              src={getImageUrl(prov.logo_path, "w500")}
+                              alt={prov.provider_name}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        )}
+                        <span className="text-xs font-medium text-white/90">{prov.provider_name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* TV Episodes Section (matching reference image) */}
         {type === "tv" && media.seasons && (
           <div className="mb-16 md:mb-20">
             <TVEpisodesSection
@@ -381,47 +641,168 @@ export default function MediaDetail({
         {/* Cast Section */}
         {cast.length > 0 && (
           <section className="mb-16 md:mb-20">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white flex items-center gap-3">
-                Cast
+                Cast &amp; Crew
               </h2>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {cast.slice(0, 6).map((person: any) => (
+            <ScrollableRow className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-6 pt-2 custom-scrollbar">
+              {cast.map((person: any) => (
                 <div
                   key={person.id}
-                  className="group relative rounded-2xl overflow-hidden aspect-[3/4] bg-white/5 border border-white/5"
+                  className="w-[120px] sm:w-[138px] shrink-0 snap-start rounded-xl overflow-hidden bg-[#161618]/80 border border-white/10 shadow-md flex flex-col"
                 >
-                  {person.profile_path ? (
-                    <Image
-                      src={getImageUrl(person.profile_path, "w500")}
-                      alt={person.name}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center w-full h-full text-white/20">
-                      <User className="w-12 h-12" />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
-                  <div className="absolute bottom-0 left-0 p-3.5">
-                    <p className="font-bold text-sm text-white line-clamp-1">
+                  <div className="relative w-full aspect-[2/3] bg-white/5">
+                    {person.profile_path ? (
+                      <Image
+                        src={getImageUrl(person.profile_path, "w500")}
+                        alt={person.name}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center w-full h-full text-white/20">
+                        <User className="w-10 h-10" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3 flex-1 flex flex-col justify-start">
+                    <p className="font-bold text-[13px] sm:text-sm text-white line-clamp-2 leading-snug mb-1">
                       {person.name}
                     </p>
-                    <p className="text-xs text-white/60 line-clamp-1 mt-0.5">
+                    <p className="text-[11px] sm:text-xs text-white/60 line-clamp-2 leading-snug">
                       {person.character}
                     </p>
                   </div>
                 </div>
               ))}
+            </ScrollableRow>
+          </section>
+        )}
+
+        {/* Media Details & Specifications Grid */}
+        <section className="mb-16 md:mb-20 p-6 md:p-8 rounded-3xl bg-[#161618]/60 border border-white/[0.08] backdrop-blur-xl">
+          <h2 className="text-lg md:text-xl font-bold text-white mb-6 flex items-center gap-2.5">
+            <Layers className="w-5 h-5 text-amber-400" />
+            <span>Story &amp; Production Details</span>
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 text-sm">
+            {director && (
+              <div>
+                <span className="text-xs text-white/45 block mb-1">Director</span>
+                <span className="font-semibold text-white/90">{director}</span>
+              </div>
+            )}
+            {creator && (
+              <div>
+                <span className="text-xs text-white/45 block mb-1">Created By</span>
+                <span className="font-semibold text-white/90">{creator}</span>
+              </div>
+            )}
+            {fullReleaseDate && (
+              <div>
+                <span className="text-xs text-white/45 block mb-1">Release Date</span>
+                <span className="font-semibold text-white/90">{fullReleaseDate}</span>
+              </div>
+            )}
+            {media.original_language && (
+              <div>
+                <span className="text-xs text-white/45 block mb-1">Original Language</span>
+                <span className="font-semibold text-white/90 uppercase">{media.original_language}</span>
+              </div>
+            )}
+            {type === "movie" && formatCurrency(media.budget) && (
+              <div>
+                <span className="text-xs text-white/45 block mb-1">Budget</span>
+                <span className="font-semibold text-white/90">{formatCurrency(media.budget)}</span>
+              </div>
+            )}
+            {type === "movie" && formatCurrency(media.revenue) && (
+              <div>
+                <span className="text-xs text-white/45 block mb-1">Box Office Revenue</span>
+                <span className="font-semibold text-white/90">{formatCurrency(media.revenue)}</span>
+              </div>
+            )}
+            {type === "tv" && media.number_of_episodes && (
+              <div>
+                <span className="text-xs text-white/45 block mb-1">Total Episodes</span>
+                <span className="font-semibold text-white/90">{media.number_of_episodes} Episodes</span>
+              </div>
+            )}
+            {media.production_companies && media.production_companies.length > 0 && (
+              <div className="col-span-2">
+                <span className="text-xs text-white/45 block mb-1">Production</span>
+                <span className="font-semibold text-white/90">
+                  {media.production_companies.slice(0, 3).map((c: any) => c.name).join(" · ")}
+                </span>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Featured Audience Reviews */}
+        {featuredReviews.length > 0 && (
+          <section className="mb-16 md:mb-20">
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white mb-6 flex items-center gap-2.5">
+              <Quote className="w-5 h-5 text-amber-400" />
+              <span>Reviews &amp; Thoughts</span>
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {featuredReviews.map((rev: any) => {
+                const authorRating = rev.author_details?.rating;
+                return (
+                  <div
+                    key={rev.id}
+                    className="p-5 md:p-6 rounded-2xl bg-[#161618]/70 border border-white/[0.08] backdrop-blur-xl flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-3.5">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/80 font-bold text-xs uppercase">
+                            {rev.author?.[0] || "U"}
+                          </div>
+                          <div>
+                            <span className="text-sm font-semibold text-white block">{rev.author}</span>
+                            <span className="text-[11px] text-white/45">
+                              {rev.created_at ? new Date(rev.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Verified Reviewer"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {authorRating && (
+                          <div className="flex items-center gap-1 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-full text-xs font-bold text-amber-300">
+                            <Star className="w-3 h-3 fill-current" />
+                            <span>{authorRating}/10</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <p className="text-[13.5px] text-white/75 leading-relaxed line-clamp-4">
+                        {rev.content}
+                      </p>
+                    </div>
+
+                    {rev.url && (
+                      <a
+                        href={rev.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-amber-200 mt-4 transition-colors font-medium self-start"
+                      >
+                        <span>Read full review</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </section>
         )}
 
         {/* Recommendations / Similar Titles Section */}
         {recommendations.length > 0 && (
-          <div id="similar-section" className="mb-24 scroll-mt-24">
+          <div id="similar-section" className="mb-16 scroll-mt-24">
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white mb-8 flex items-center gap-2.5">
               <Sparkles className="w-5 h-5 text-amber-300" />
               <span>More Like This</span>

@@ -119,26 +119,42 @@ export default function Navbar() {
     pathname?.startsWith("/movie/") || pathname?.startsWith("/tv/");
   if (isDetailPage) return null;
 
-  return (
-    <header
-      className={`fixed top-4 sm:top-5 inset-x-0 z-50 pointer-events-none transition-transform duration-300 ease-out select-none ${
-        isHidden ? "-translate-y-28" : "translate-y-0"
-      }`}
+  const Logo = (
+    <Link
+      href="/"
+      className="pointer-events-auto flex items-center gap-2.5 sm:gap-3 group active:scale-95 transition-all duration-200"
+      aria-label="Popcorn Rate Home"
     >
-      <div className="container mx-auto px-4 sm:px-8 md:px-12 max-w-[1440px] flex items-center justify-between">
-        {/* Website Logo at Left */}
-        <Link
-          href="/"
-          className="pointer-events-auto flex items-center gap-2.5 sm:gap-3 group active:scale-95 transition-all duration-200"
-          aria-label="Popcorn Rate Home"
-        >
-          <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-[#161618]/70 hover:bg-white/[0.12] backdrop-blur-3xl border border-white/[0.18] flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] p-1.5 sm:p-2 transition-all duration-200 group-hover:border-white/30 group-hover:scale-105 shrink-0">
-            <BrandLogo className="w-full h-full" />
+      <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-[#161618]/70 hover:bg-white/[0.12] backdrop-blur-3xl border border-white/[0.18] flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] p-1.5 sm:p-2 transition-all duration-200 group-hover:border-white/30 group-hover:scale-105 shrink-0">
+        <BrandLogo className="w-full h-full" />
+      </div>
+      <span className="font-extrabold text-base sm:text-lg md:text-xl tracking-tight text-white flex items-center drop-shadow-md">
+        Popcorn<span className="text-amber-400 ml-0.5">Rate</span>
+      </span>
+    </Link>
+  );
+
+  return (
+    <>
+      {/* Mobile Logo (Top Left) */}
+      <div
+        className={`fixed top-5 left-5 sm:hidden z-[100] pointer-events-none transition-transform duration-300 ease-out select-none ${
+          isHidden ? "-translate-y-28" : "translate-y-0"
+        }`}
+      >
+        {Logo}
+      </div>
+
+      <header
+        className={`fixed bottom-6 sm:bottom-auto sm:top-5 inset-x-0 z-[100] pointer-events-none transition-transform duration-300 ease-out select-none flex justify-center sm:block ${
+          isHidden ? "translate-y-32 sm:-translate-y-28" : "translate-y-0"
+        }`}
+      >
+        <div className="container mx-auto px-4 sm:px-8 md:px-12 max-w-[1440px] flex items-center justify-center sm:justify-between">
+          {/* Desktop Logo at Left */}
+          <div className="hidden sm:block">
+            {Logo}
           </div>
-          <span className="hidden min-[480px]:flex font-extrabold text-base sm:text-lg md:text-xl tracking-tight text-white items-center drop-shadow-md">
-            Popcorn<span className="text-amber-400 ml-0.5">Rate</span>
-          </span>
-        </Link>
 
         {/* Navigation Capsule Pill moved to Right */}
         <div className="pointer-events-auto relative" ref={settingsRef}>
@@ -254,7 +270,7 @@ export default function Navbar() {
 
           {/* Settings Popover */}
           {isSettingsOpen && (
-            <div className="absolute right-0 top-full mt-3 w-72 sm:w-80 bg-[#161618]/95 backdrop-blur-3xl border border-white/[0.18] rounded-3xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.2)] animate-in fade-in slide-in-from-top-2 duration-150 z-50 text-white">
+            <div className="absolute right-0 bottom-full mb-4 sm:bottom-auto sm:top-full sm:mt-3 w-72 sm:w-80 bg-[#161618]/95 backdrop-blur-3xl border border-white/[0.18] rounded-3xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.2)] animate-in fade-in slide-in-from-bottom-2 sm:slide-in-from-top-2 duration-150 z-50 text-white">
               <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
                 <div className="flex items-center gap-2">
                   <Settings className="w-4 h-4 text-amber-400" />
@@ -301,5 +317,6 @@ export default function Navbar() {
         </div>
       </div>
     </header>
+    </>
   );
 }
