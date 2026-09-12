@@ -1,0 +1,77 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import MovieCard from '@/components/MovieCard';
+import { Bookmark, LayoutGrid } from 'lucide-react';
+import Link from 'next/link';
+
+export default function WatchlistPage() {
+  const [watchlist, setWatchlist] = useState<any[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('popcorn-watchlist');
+      if (saved) {
+        setWatchlist(JSON.parse(saved));
+      }
+    } catch (err) {
+      console.error('Failed to load watchlist', err);
+    }
+    setIsLoaded(true);
+  }, []);
+
+  if (!isLoaded) {
+    return (
+      <main className="flex-1 w-full flex items-center justify-center min-h-[60vh]">
+        <div className="w-8 h-8 rounded-full border-2 border-white/20 border-t-white animate-spin"></div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="flex-1 w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-8 pt-28 pb-20">
+      <div className="flex items-center gap-3 mb-8 sm:mb-10 border-b border-white/10 pb-6">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 flex items-center justify-center border border-white/10 text-amber-400 shrink-0">
+          <Bookmark className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" />
+        </div>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white drop-shadow-sm">
+            My List
+          </h1>
+          <p className="text-white/60 text-[13px] sm:text-sm mt-1">Movies and shows you've saved to watch later.</p>
+        </div>
+      </div>
+
+      {watchlist.length === 0 ? (
+        <div className="flex flex-col items-center justify-center min-h-[50vh] text-center border border-dashed border-white/10 rounded-3xl bg-white/[0.01]">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/5 flex items-center justify-center mb-5 border border-white/10">
+            <LayoutGrid className="w-8 h-8 sm:w-10 sm:h-10 text-white/30" />
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-white mb-2 tracking-tight">Your list is empty</h2>
+          <p className="text-white/50 text-sm sm:text-[15px] max-w-sm mb-8 px-4">
+            Add movies and TV shows to your list to easily find them later.
+          </p>
+          <Link 
+            href="/"
+            className="flex items-center justify-center gap-2 bg-white text-black px-6 py-3 sm:px-8 sm:py-3.5 rounded-full font-semibold text-[15px] sm:text-[16px] shadow-[0_4px_16px_rgba(0,0,0,0.25),0_1px_2px_rgba(0,0,0,0.1)] hover:bg-white/95 active:scale-95 transition-all duration-200 ease-out"
+          >
+            Explore Titles
+          </Link>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6 gap-y-8 sm:gap-y-10">
+          {watchlist.map((item: any) => (
+            <MovieCard 
+              key={`${item.type}-${item.id}`} 
+              movie={{
+                ...item,
+                media_type: item.type 
+              }} 
+            />
+          ))}
+        </div>
+      )}
+    </main>
+  );
+}
