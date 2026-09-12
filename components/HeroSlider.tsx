@@ -30,7 +30,7 @@ export default function HeroSlider({ items }: { items: any[] }) {
   const displayItems = items.slice(0, 5); // Max 5 items in slider
 
   return (
-    <div className="relative w-full overflow-hidden bg-black h-[85vh] min-h-[600px] md:h-[95vh] xl:h-[100vh] group shadow-2xl">
+    <div className="relative w-full overflow-hidden bg-black h-[75vh] min-h-[500px] md:h-[95vh] xl:h-[100vh] md:min-h-[600px] group shadow-2xl">
       {displayItems.map((item, index) => {
         const isActive = index === currentIndex;
         const title = item.title || item.name;
@@ -86,7 +86,7 @@ export default function HeroSlider({ items }: { items: any[] }) {
             <div className="absolute inset-0 w-full md:w-2/3 bg-gradient-to-r from-black/80 via-black/20 to-transparent" />
 
             {/* Content Container */}
-            <div className="absolute inset-0 flex flex-col justify-end p-6 sm:px-8 md:px-12 lg:px-[max(5%,calc((100vw-1400px)/2+32px))] pb-16 md:pb-24 w-full md:w-3/4 lg:w-2/3 pointer-events-none">
+            <div className="absolute inset-0 flex flex-col justify-end px-4 sm:px-8 md:px-12 lg:px-[max(5%,calc((100vw-1400px)/2+32px))] pb-20 md:pb-24 w-full md:w-3/4 lg:w-2/3 pointer-events-none">
               <div
                 className={`transition-all duration-1000 transform pointer-events-auto ${
                   isActive ? 'translate-y-0 opacity-100 delay-300' : 'translate-y-8 opacity-0'
@@ -94,7 +94,7 @@ export default function HeroSlider({ items }: { items: any[] }) {
               >
                 {/* Title or Logo */}
                 {item.logo_path ? (
-                  <div className="relative w-64 md:w-80 h-20 md:h-28 mb-3 drop-shadow-lg">
+                  <div className="relative w-48 sm:w-64 md:w-80 h-16 sm:h-20 md:h-28 mb-2 sm:mb-3 drop-shadow-lg">
                     <Image
                       src={getImageUrl(item.logo_path, 'original')}
                       alt={title}
@@ -104,18 +104,18 @@ export default function HeroSlider({ items }: { items: any[] }) {
                     />
                   </div>
                 ) : (
-                  <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white mb-2 line-clamp-2 drop-shadow-lg">
+                  <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white mb-2 line-clamp-2 drop-shadow-lg leading-tight">
                     {title}
                   </h2>
                 )}
 
                 {/* Meta details (Rating • Date • Genres) */}
-                <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-6 text-[14px] md:text-[15px] font-medium text-white/90 drop-shadow-md">
-                  <PopcornRating rating={item.vote_average} compact className="w-4 h-4 text-white" />
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 md:gap-3 mb-4 sm:mb-6 text-[12px] sm:text-[14px] md:text-[15px] font-medium text-white/90 drop-shadow-md">
+                  <PopcornRating rating={item.vote_average} compact className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                   {formattedDate && <span className="text-white/60">•</span>}
                   {formattedDate && <span>{formattedDate}</span>}
                   {itemGenres.map((genre: string) => (
-                    <span key={genre} className="flex items-center gap-2 md:gap-3">
+                    <span key={genre} className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
                       <span className="text-white/60">•</span>
                       <span>{genre}</span>
                     </span>
@@ -123,24 +123,24 @@ export default function HeroSlider({ items }: { items: any[] }) {
                 </div>
 
                 {/* Overview */}
-                <p className="text-white/80 text-base md:text-lg line-clamp-2 md:line-clamp-3 mb-8 max-w-xl text-shadow-sm font-medium">
+                <p className="text-white/80 text-[13px] sm:text-sm md:text-lg line-clamp-3 mb-6 sm:mb-8 max-w-xl text-shadow-sm font-medium leading-relaxed">
                   {overview}
                 </p>
 
                 {/* Actions */}
-                <div className="flex items-center gap-3 md:gap-4 select-none">
+                <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4 select-none">
                   <Link
                     href={`/${type}/${item.id}`}
-                    className="flex items-center gap-2 bg-white text-black px-6 py-2.5 md:px-7 md:py-3 rounded-full font-semibold text-[14.5px] md:text-[15px] shadow-[0_4px_16px_rgba(0,0,0,0.25),0_1px_2px_rgba(0,0,0,0.1)] hover:bg-white/95 active:scale-95 transition-all duration-200 ease-out"
+                    className="flex items-center justify-center gap-2 bg-white text-black px-5 py-2 sm:px-6 sm:py-2.5 md:px-7 md:py-3 rounded-full font-semibold text-[13.5px] sm:text-[14.5px] md:text-[15px] shadow-[0_4px_16px_rgba(0,0,0,0.25),0_1px_2px_rgba(0,0,0,0.1)] hover:bg-white/95 active:scale-95 transition-all duration-200 ease-out flex-1 sm:flex-none"
                   >
-                    <Play className="w-[18px] h-[18px] md:w-5 md:h-5 fill-current" />
+                    <Play className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] md:w-5 md:h-5 fill-current" />
                     Watch Now
                   </Link>
                   <Link
                     href={`/${type}/${item.id}`}
-                    className="flex items-center gap-2 bg-[#161618]/70 text-white backdrop-blur-2xl border border-white/[0.18] shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] px-6 py-2.5 md:px-7 md:py-3 rounded-full font-medium text-[14.5px] md:text-[15px] hover:bg-white/[0.12] hover:border-white/30 active:scale-95 transition-all duration-200 ease-out"
+                    className="flex items-center justify-center gap-2 bg-[#161618]/70 text-white backdrop-blur-2xl border border-white/[0.18] shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] px-5 py-2 sm:px-6 sm:py-2.5 md:px-7 md:py-3 rounded-full font-medium text-[13.5px] sm:text-[14.5px] md:text-[15px] hover:bg-white/[0.12] hover:border-white/30 active:scale-95 transition-all duration-200 ease-out flex-1 sm:flex-none"
                   >
-                    <Info className="w-[18px] h-[18px] md:w-5 md:h-5" />
+                    <Info className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] md:w-5 md:h-5" />
                     Details
                   </Link>
                 </div>

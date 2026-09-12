@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function ScrollableRow({ 
   children,
-  className = "flex gap-4 overflow-x-auto snap-x snap-mandatory pb-8 pt-2 custom-scrollbar"
+  className = "flex gap-3 sm:gap-4 lg:gap-6 overflow-x-auto snap-x snap-mandatory pb-8 pt-2 custom-scrollbar"
 }: { 
   children: React.ReactNode,
   className?: string

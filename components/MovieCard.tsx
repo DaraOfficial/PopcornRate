@@ -49,12 +49,12 @@ export default function MovieCard({ movie }: { movie: Media }) {
       </div>
       
       <div className="flex flex-col gap-1 px-1">
-        <h3 className="line-clamp-1 text-[15px] font-semibold tracking-tight text-white transition-colors">
+        <h3 className="line-clamp-1 text-[13.5px] sm:text-[15px] font-semibold tracking-tight text-white transition-colors">
           {title}
         </h3>
-        <div className="flex items-center justify-between text-[14px] text-gray-400">
+        <div className="flex items-center justify-between text-[12.5px] sm:text-[14px] text-gray-400">
           <span>{formattedDate}</span>
-          <PopcornRating rating={movie.vote_average} compact className="w-3.5 h-3.5 text-[13px] text-white" />
+          <PopcornRating rating={movie.vote_average} compact className="w-3.5 h-3.5 text-[12px] sm:text-[13px] text-white" />
         </div>
       </div>
     </Link>

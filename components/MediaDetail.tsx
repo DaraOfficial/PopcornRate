@@ -316,11 +316,11 @@ export default function MediaDetail({
         )}
 
         {/* Hero Content (Positioned at Lower-Left) */}
-        <div className="relative z-10 container mx-auto px-6 md:px-12 lg:px-16 max-w-[1440px] pb-12 md:pb-16 pt-32">
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 md:px-12 lg:px-16 max-w-[1440px] pb-12 md:pb-16 pt-32">
           <div className="max-w-xl md:max-w-2xl flex flex-col items-start">
             {/* Title / Movie Logo */}
             {logo?.file_path ? (
-              <div className="relative h-20 sm:h-24 md:h-28 lg:h-32 w-64 sm:w-80 md:w-96 mb-5">
+              <div className="relative h-16 sm:h-24 md:h-28 lg:h-32 w-56 sm:w-80 md:w-96 mb-4 sm:mb-5">
                 <Image
                   src={getImageUrl(logo.file_path, "original")}
                   alt={title}
@@ -494,7 +494,7 @@ export default function MediaDetail({
       )}
 
       {/* Main Content Details */}
-      <div className="container mx-auto px-6 md:px-12 lg:px-16 max-w-[1440px] mt-10 md:mt-14">
+      <div className="container mx-auto px-4 sm:px-6 md:px-12 lg:px-16 max-w-[1440px] mt-10 md:mt-14">
         {/* Where to Watch / Streaming Options Card */}
         {(streamProviders.length > 0 || rentProviders.length > 0 || buyProviders.length > 0) && (
           <div className="mb-14 p-5 sm:p-6 rounded-3xl bg-[#161618]/80 border border-white/[0.12] backdrop-blur-2xl shadow-[0_12px_36px_rgba(0,0,0,0.4)]">
@@ -807,7 +807,7 @@ export default function MediaDetail({
               <Sparkles className="w-5 h-5 text-amber-300" />
               <span>More Like This</span>
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6 gap-y-8 sm:gap-y-10">
               {recommendations.slice(0, 12).map((item: any) => (
                 <MovieCard key={item.id} movie={item} />
               ))}
