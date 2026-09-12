@@ -14,23 +14,42 @@ const GENRE_MAP: Record<number, string> = {
 
 export default function HeroSlider({ items }: { items: any[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     if (!items || items.length === 0) return;
+    if (isPaused) return;
 
     const interval = setInterval(() => {
       setCurrentIndex((current) => (current + 1) % Math.min(5, items.length));
     }, 6000); // 6 seconds per slide
 
     return () => clearInterval(interval);
-  }, [items]);
+  }, [items, isPaused, currentIndex]);
 
   if (!items || items.length === 0) return null;
 
   const displayItems = items.slice(0, 5); // Max 5 items in slider
 
   return (
-    <div className="relative w-full overflow-hidden bg-black h-[75vh] min-h-[500px] md:h-[95vh] xl:h-[100vh] md:min-h-[600px] group shadow-2xl">
+    <div 
+      className="relative w-full overflow-hidden bg-black h-[75vh] min-h-[500px] md:h-[95vh] xl:h-[100vh] md:min-h-[600px] group shadow-2xl"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={() => setIsPaused(true)}
+      onTouchEnd={() => setIsPaused(false)}
+    >
+      <style>{`
+        @keyframes sliderProgress {
+          0% { transform: scaleX(0); }
+          100% { transform: scaleX(1); }
+        }
+        @keyframes kenBurns {
+          0% { transform: scale(1); }
+          100% { transform: scale(1.05); }
+        }
+      `}</style>
+      
       {displayItems.map((item, index) => {
         const isActive = index === currentIndex;
         const title = item.title || item.name;
@@ -65,15 +84,26 @@ export default function HeroSlider({ items }: { items: any[] }) {
             }`}
             aria-hidden={!isActive}
           >
-            {/* Background Image */}
-            <Image
-              src={getImageUrl(item.backdrop_path, 'original')}
-              alt={title}
-              fill
-              className="object-cover"
-              referrerPolicy="no-referrer"
-              priority={index === 0} // Only prioritize the first image to prevent slow LCP
-            />
+            {/* Background Image with Ken Burns effect */}
+            <div 
+              className="absolute inset-0 w-full h-full"
+              style={{
+                animationName: isActive ? 'kenBurns' : 'none',
+                animationDuration: '10s',
+                animationTimingFunction: 'ease-out',
+                animationFillMode: 'forwards',
+                animationPlayState: isPaused ? 'paused' : 'running'
+              }}
+            >
+              <Image
+                src={getImageUrl(item.backdrop_path, 'original')}
+                alt={title}
+                fill
+                className="object-cover"
+                referrerPolicy="no-referrer"
+                priority={index === 0}
+              />
+            </div>
 
             {/* Top gradient to ensure fixed navbar text is always legible */}
             <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/60 to-transparent" />
@@ -131,14 +161,14 @@ export default function HeroSlider({ items }: { items: any[] }) {
                 <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4 select-none">
                   <Link
                     href={`/${type}/${item.id}`}
-                    className="flex items-center justify-center gap-2 bg-white text-black px-5 py-2 sm:px-6 sm:py-2.5 md:px-7 md:py-3 rounded-full font-semibold text-[13.5px] sm:text-[14.5px] md:text-[15px] shadow-[0_4px_16px_rgba(0,0,0,0.25),0_1px_2px_rgba(0,0,0,0.1)] hover:bg-white/95 active:scale-95 transition-all duration-200 ease-out flex-1 sm:flex-none"
+                    className="flex items-center justify-center gap-2 bg-white text-black px-5 py-2.5 sm:px-6 sm:py-3 md:px-7 md:py-3.5 rounded-full font-semibold text-[14px] sm:text-[15px] shadow-[0_4px_16px_rgba(0,0,0,0.25),0_1px_2px_rgba(0,0,0,0.1)] hover:bg-white/95 active:scale-95 transition-all duration-200 ease-out flex-1 sm:flex-none"
                   >
                     <Play className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] md:w-5 md:h-5 fill-current" />
                     Watch Now
                   </Link>
                   <Link
                     href={`/${type}/${item.id}`}
-                    className="flex items-center justify-center gap-2 bg-[#161618]/70 text-white backdrop-blur-2xl border border-white/[0.18] shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] px-5 py-2 sm:px-6 sm:py-2.5 md:px-7 md:py-3 rounded-full font-medium text-[13.5px] sm:text-[14.5px] md:text-[15px] hover:bg-white/[0.12] hover:border-white/30 active:scale-95 transition-all duration-200 ease-out flex-1 sm:flex-none"
+                    className="flex items-center justify-center gap-2 bg-[#161618]/70 text-white backdrop-blur-2xl border border-white/[0.18] shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] px-5 py-2.5 sm:px-6 sm:py-3 md:px-7 md:py-3.5 rounded-full font-medium text-[14px] sm:text-[15px] hover:bg-white/[0.12] hover:border-white/30 active:scale-95 transition-all duration-200 ease-out flex-1 sm:flex-none"
                   >
                     <Info className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] md:w-5 md:h-5" />
                     Details
@@ -150,18 +180,34 @@ export default function HeroSlider({ items }: { items: any[] }) {
         );
       })}
 
-      {/* Pagination Indicators */}
-      <div className="absolute bottom-6 md:bottom-8 left-0 right-0 z-20 flex justify-center gap-2 pointer-events-none">
-        {displayItems.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => setCurrentIndex(index)}
-            className={`transition-all duration-500 rounded-full h-1.5 md:h-2 pointer-events-auto ${
-              index === currentIndex ? 'w-6 md:w-8 bg-white' : 'w-1.5 md:w-2 bg-white/40 hover:bg-white/60'
-            }`}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
+      {/* Modern Animated Pagination Indicators (Apple TV / Netflix style) */}
+      <div className="absolute bottom-6 md:bottom-10 right-4 sm:right-8 md:right-12 lg:right-[max(3rem,calc((100vw-1400px)/2+48px))] z-20 flex justify-end gap-2.5 pointer-events-none">
+        {displayItems.map((_, index) => {
+          const isActive = index === currentIndex;
+          return (
+            <button
+              key={index}
+              onClick={() => setCurrentIndex(index)}
+              className={`relative overflow-hidden transition-all duration-500 rounded-full h-1.5 md:h-2 pointer-events-auto bg-white/20 hover:bg-white/40 backdrop-blur-md ${
+                isActive ? 'w-10 sm:w-12 md:w-16' : 'w-2 md:w-2.5'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            >
+              {isActive && (
+                <div 
+                  className="absolute inset-0 bg-white origin-left"
+                  style={{
+                    animationName: 'sliderProgress',
+                    animationDuration: '6000ms',
+                    animationTimingFunction: 'linear',
+                    animationFillMode: 'forwards',
+                    animationPlayState: isPaused ? 'paused' : 'running'
+                  }}
+                />
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
