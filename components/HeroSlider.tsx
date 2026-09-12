@@ -158,20 +158,20 @@ export default function HeroSlider({ items }: { items: any[] }) {
                 </p>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4 select-none w-full sm:w-auto">
+                <div className="flex flex-row items-center gap-2.5 sm:gap-3 select-none w-full sm:w-auto">
                   <Link
                     href={`/${type}/${item.id}`}
-                    className="flex items-center justify-center gap-2 bg-white text-black px-6 py-3 sm:px-8 sm:py-3.5 md:px-9 md:py-4 rounded-full font-semibold text-[15px] sm:text-[16px] shadow-[0_4px_16px_rgba(0,0,0,0.25),0_1px_2px_rgba(0,0,0,0.1)] hover:bg-white/95 active:scale-95 transition-all duration-200 ease-out flex-1 sm:flex-none"
+                    className="flex flex-1 sm:flex-none items-center justify-center gap-2 bg-white text-black font-semibold text-[15px] sm:text-[16px] h-11 px-6 sm:px-8 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.3),0_1px_2px_rgba(0,0,0,0.1)] hover:bg-white/95 active:scale-95 transition-all duration-200 ease-out"
                   >
-                    <Play className="w-[18px] h-[18px] sm:w-[20px] sm:h-[20px] fill-current" />
-                    Play
+                    <Play className="w-[18px] h-[18px] fill-current" />
+                    <span>Play</span>
                   </Link>
                   <Link
                     href={`/${type}/${item.id}`}
-                    className="flex items-center justify-center gap-2 bg-[#161618]/70 text-white backdrop-blur-2xl border border-white/[0.18] shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] px-6 py-3 sm:px-8 sm:py-3.5 md:px-9 md:py-4 rounded-full font-medium text-[15px] sm:text-[16px] hover:bg-white/[0.12] hover:border-white/30 active:scale-95 transition-all duration-200 ease-out flex-1 sm:flex-none"
+                    className="flex flex-1 sm:flex-none items-center justify-center gap-2 bg-[#161618]/70 text-white backdrop-blur-2xl border border-white/[0.18] shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] h-11 px-6 sm:px-8 rounded-full font-medium text-[15px] sm:text-[16px] hover:bg-white/[0.12] hover:border-white/30 active:scale-95 transition-all duration-200 ease-out"
                   >
-                    <Info className="w-[18px] h-[18px] sm:w-[20px] sm:h-[20px]" />
-                    Details
+                    <Info className="w-[18px] h-[18px]" />
+                    <span>Details</span>
                   </Link>
                 </div>
               </div>
