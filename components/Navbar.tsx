@@ -40,10 +40,10 @@ function SearchInput() {
           setIsOpen(!isOpen);
           if (!isOpen) setTimeout(() => inputRef.current?.focus(), 10);
         }}
-        className="flex items-center justify-center w-8 h-8 rounded-full text-white/70 hover:text-white hover:bg-white/[0.08] active:bg-white/[0.15] active:scale-90 transition-all duration-150"
+        className="flex items-center justify-center w-10 h-10 sm:w-8 sm:h-8 rounded-full text-white/70 hover:text-white hover:bg-white/[0.08] active:bg-white/[0.15] active:scale-90 transition-all duration-150"
         aria-label="Search"
       >
-        <Search className="w-[18px] h-[18px]" strokeWidth={2.2} />
+        <Search className="w-5 h-5 sm:w-[18px] sm:h-[18px]" strokeWidth={2.2} />
       </button>
 
       <div
@@ -157,20 +157,20 @@ export default function Navbar() {
           </div>
 
         {/* Navigation Capsule Pill moved to Right */}
-        <div className="pointer-events-auto relative" ref={settingsRef}>
-          <div className="flex items-center justify-between gap-1 bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] rounded-full shadow-[0_12px_36px_-6px_rgba(0,0,0,0.7),inset_0_1px_0_0_rgba(255,255,255,0.22)] p-1 sm:p-1.5">
+        <div className="pointer-events-auto relative w-[92vw] sm:w-auto" ref={settingsRef}>
+          <div className="flex items-center justify-between gap-1 bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] rounded-full shadow-[0_12px_36px_-6px_rgba(0,0,0,0.7),inset_0_1px_0_0_rgba(255,255,255,0.22)] p-2 sm:p-1.5 w-full">
             {/* iOS Segmented Navigation Items */}
-            <div className="flex items-center gap-0.5 sm:gap-1">
+            <div className="flex items-center justify-around flex-1 sm:flex-none sm:gap-1">
               <Link
                 href="/"
-                className={`flex items-center justify-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-1.5 rounded-full transition-all duration-200 ease-out active:scale-95 ${
+                className={`flex items-center justify-center gap-1.5 px-4 py-2.5 sm:px-4 sm:py-1.5 rounded-full transition-all duration-200 ease-out active:scale-95 ${
                   pathname === "/" || pathname?.startsWith("/?q=")
-                    ? "bg-white text-black font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.18),0_1px_2px_rgba(0,0,0,0.1)]"
-                    : "text-white/60 hover:text-white hover:bg-white/[0.07] active:bg-white/[0.12] font-medium"
+                    ? "bg-white text-black font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.18),0_1px_2px_rgba(0,0,0,0.1)] w-16 sm:w-auto"
+                    : "text-white/60 hover:text-white hover:bg-white/[0.07] active:bg-white/[0.12] font-medium w-12 sm:w-auto"
                 }`}
               >
                 <Home
-                  className={`w-[19px] h-[19px] sm:w-[17px] sm:h-[17px] ${
+                  className={`w-[22px] h-[22px] sm:w-[17px] sm:h-[17px] ${
                     pathname === "/" || pathname?.startsWith("/?q=")
                       ? "block"
                       : "block sm:hidden"
@@ -184,14 +184,14 @@ export default function Navbar() {
 
               <Link
                 href="/movies"
-                className={`flex items-center justify-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-1.5 rounded-full transition-all duration-200 ease-out active:scale-95 ${
+                className={`flex items-center justify-center gap-1.5 px-4 py-2.5 sm:px-4 sm:py-1.5 rounded-full transition-all duration-200 ease-out active:scale-95 ${
                   pathname === "/movies"
-                    ? "bg-white text-black font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.18),0_1px_2px_rgba(0,0,0,0.1)]"
-                    : "text-white/60 hover:text-white hover:bg-white/[0.07] active:bg-white/[0.12] font-medium"
+                    ? "bg-white text-black font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.18),0_1px_2px_rgba(0,0,0,0.1)] w-16 sm:w-auto"
+                    : "text-white/60 hover:text-white hover:bg-white/[0.07] active:bg-white/[0.12] font-medium w-12 sm:w-auto"
                 }`}
               >
                 <Clapperboard
-                  className={`w-[19px] h-[19px] sm:w-[17px] sm:h-[17px] ${
+                  className={`w-[22px] h-[22px] sm:w-[17px] sm:h-[17px] ${
                     pathname === "/movies" ? "block" : "block sm:hidden"
                   }`}
                   strokeWidth={2.2}
@@ -203,14 +203,14 @@ export default function Navbar() {
 
               <Link
                 href="/tv"
-                className={`flex items-center justify-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-1.5 rounded-full transition-all duration-200 ease-out active:scale-95 ${
+                className={`flex items-center justify-center gap-1.5 px-4 py-2.5 sm:px-4 sm:py-1.5 rounded-full transition-all duration-200 ease-out active:scale-95 ${
                   pathname === "/tv"
-                    ? "bg-white text-black font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.18),0_1px_2px_rgba(0,0,0,0.1)]"
-                    : "text-white/60 hover:text-white hover:bg-white/[0.07] active:bg-white/[0.12] font-medium"
+                    ? "bg-white text-black font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.18),0_1px_2px_rgba(0,0,0,0.1)] w-16 sm:w-auto"
+                    : "text-white/60 hover:text-white hover:bg-white/[0.07] active:bg-white/[0.12] font-medium w-12 sm:w-auto"
                 }`}
               >
                 <Tv
-                  className={`w-[19px] h-[19px] sm:w-[17px] sm:h-[17px] ${
+                  className={`w-[22px] h-[22px] sm:w-[17px] sm:h-[17px] ${
                     pathname === "/tv" ? "block" : "block sm:hidden"
                   }`}
                   strokeWidth={2.2}
@@ -222,14 +222,14 @@ export default function Navbar() {
 
               <Link
                 href="/list"
-                className={`flex items-center justify-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-1.5 rounded-full transition-all duration-200 ease-out active:scale-95 ${
+                className={`flex items-center justify-center gap-1.5 px-4 py-2.5 sm:px-4 sm:py-1.5 rounded-full transition-all duration-200 ease-out active:scale-95 ${
                   pathname === "/list"
-                    ? "bg-white text-black font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.18),0_1px_2px_rgba(0,0,0,0.1)]"
-                    : "text-white/60 hover:text-white hover:bg-white/[0.07] active:bg-white/[0.12] font-medium"
+                    ? "bg-white text-black font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.18),0_1px_2px_rgba(0,0,0,0.1)] w-16 sm:w-auto"
+                    : "text-white/60 hover:text-white hover:bg-white/[0.07] active:bg-white/[0.12] font-medium w-12 sm:w-auto"
                 }`}
               >
                 <Bookmark
-                  className={`w-[19px] h-[19px] sm:w-[17px] sm:h-[17px] ${
+                  className={`w-[22px] h-[22px] sm:w-[17px] sm:h-[17px] ${
                     pathname === "/list" ? "block" : "block sm:hidden"
                   }`}
                   strokeWidth={2.2}
@@ -241,10 +241,10 @@ export default function Navbar() {
             </div>
 
             {/* Subtle iOS Hairline Divider */}
-            <div className="w-[1px] h-4 bg-white/[0.15] mx-1"></div>
+            <div className="w-[1px] h-5 sm:h-4 bg-white/[0.15] mx-1"></div>
 
             {/* iOS Quick Actions */}
-            <div className="flex items-center gap-0.5">
+            <div className="flex items-center gap-1 sm:gap-0.5 pr-1 sm:pr-0">
               <Suspense
                 fallback={
                   <div className="w-8 h-8 rounded-full bg-white/5 animate-pulse" />
@@ -255,7 +255,7 @@ export default function Navbar() {
 
               <button
                 onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-                className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-150 cursor-pointer ${
+                className={`flex items-center justify-center w-10 h-10 sm:w-8 sm:h-8 rounded-full transition-all duration-150 cursor-pointer ${
                   isSettingsOpen
                     ? "text-white bg-white/20 scale-105"
                     : "text-white/70 hover:text-white hover:bg-white/[0.08] active:bg-white/[0.15] active:scale-90"
@@ -263,7 +263,7 @@ export default function Navbar() {
                 aria-label="Settings"
                 title="Settings"
               >
-                <Settings className="w-[18px] h-[18px]" strokeWidth={2.2} />
+                <Settings className="w-5 h-5 sm:w-[18px] sm:h-[18px]" strokeWidth={2.2} />
               </button>
             </div>
           </div>
