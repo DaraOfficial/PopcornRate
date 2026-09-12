@@ -259,21 +259,21 @@ export default function MediaDetail({
         {/* Navigation Back Button */}
         <button
           onClick={handleBack}
-          className="pointer-events-auto flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] text-white/85 hover:text-white hover:bg-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-90 transition-all duration-200 ease-out cursor-pointer"
+          className="pointer-events-auto flex items-center justify-center w-11 h-11 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] text-white/85 hover:text-white hover:bg-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-90 transition-all duration-200 ease-out cursor-pointer"
           aria-label="Go back"
         >
-          <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 mr-0.5" strokeWidth={2.2} />
+          <ChevronLeft className="w-[22px] h-[22px] mr-0.5" strokeWidth={2.2} />
         </button>
 
         {/* Right Actions: Share & Audio Controls */}
         <div className="pointer-events-auto flex items-center gap-2.5">
           <button
             onClick={handleShare}
-            className="flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] text-white/80 hover:text-white hover:bg-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-90 transition-all duration-200 ease-out cursor-pointer"
+            className="flex items-center justify-center w-11 h-11 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] text-white/80 hover:text-white hover:bg-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-90 transition-all duration-200 ease-out cursor-pointer"
             aria-label="Share"
             title="Share this title"
           >
-            <Share2 className="w-4 h-4 md:w-4.5 md:h-4.5" strokeWidth={2.2} />
+            <Share2 className="w-[18px] h-[18px]" strokeWidth={2.2} />
           </button>
 
           <button
@@ -281,14 +281,14 @@ export default function MediaDetail({
               setIsMuted(!isMuted);
               triggerToast(isMuted ? "Audio enabled" : "Audio muted");
             }}
-            className="flex items-center justify-center w-10 h-10 md:w-11 md:h-11 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] text-white/80 hover:text-white hover:bg-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-90 transition-all duration-200 ease-out cursor-pointer"
+            className="flex items-center justify-center w-11 h-11 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] text-white/80 hover:text-white hover:bg-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-90 transition-all duration-200 ease-out cursor-pointer"
             aria-label={isMuted ? "Unmute" : "Mute"}
             title={isMuted ? "Unmute" : "Mute"}
           >
             {isMuted ? (
-              <VolumeX className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2.2} />
+              <VolumeX className="w-[18px] h-[18px]" strokeWidth={2.2} />
             ) : (
-              <Volume2 className="w-4 h-4 md:w-5 md:h-5" strokeWidth={2.2} />
+              <Volume2 className="w-[18px] h-[18px]" strokeWidth={2.2} />
             )}
           </button>
         </div>
@@ -391,7 +391,7 @@ export default function MediaDetail({
             )}
 
             {/* Action Buttons Row */}
-            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 select-none">
+            <div className="flex flex-row items-center gap-2.5 sm:gap-3 w-full sm:w-auto select-none">
               {/* 1. Play Button */}
               <button
                 onClick={() => {
@@ -401,39 +401,39 @@ export default function MediaDetail({
                     triggerToast("No trailer video preview found");
                   }
                 }}
-                className="flex items-center justify-center gap-2 bg-white text-black font-semibold text-[14px] sm:text-[15px] w-10 h-10 sm:w-auto sm:h-auto sm:px-7 sm:py-2.5 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.3),0_1px_2px_rgba(0,0,0,0.1)] hover:bg-white/95 active:scale-95 transition-all duration-200 cursor-pointer"
+                className="flex flex-1 sm:flex-none items-center justify-center gap-2 bg-white text-black font-semibold text-[15px] sm:text-[16px] h-11 px-6 sm:px-8 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.3),0_1px_2px_rgba(0,0,0,0.1)] hover:bg-white/95 active:scale-95 transition-all duration-200 cursor-pointer"
                 title="Play"
                 aria-label="Play"
               >
-                <Play className="w-4 h-4 fill-current ml-0.5 sm:ml-0" />
-                <span className="hidden sm:inline">Play</span>
+                <Play className="w-[18px] h-[18px] fill-current" />
+                <span>Play</span>
               </button>
 
               {/* 2. Add to Watchlist (+) Button */}
               <button
                 onClick={toggleWatchlist}
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-[#161618]/70 hover:bg-white/[0.15] border border-white/[0.18] shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] text-white active:scale-90 transition-all duration-200 backdrop-blur-2xl cursor-pointer"
+                className="flex items-center justify-center w-11 h-11 rounded-full bg-[#161618]/70 hover:bg-white/[0.15] border border-white/[0.18] shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] text-white active:scale-90 transition-all duration-200 backdrop-blur-2xl cursor-pointer shrink-0"
                 title={isInWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
                 aria-label="Add to Watchlist"
               >
                 {isInWatchlist ? (
-                  <Check className="w-4 h-4 text-emerald-400" strokeWidth={2.5} />
+                  <Check className="w-[18px] h-[18px] text-emerald-400" strokeWidth={2.5} />
                 ) : (
-                  <Plus className="w-4 h-4" strokeWidth={2.2} />
+                  <Plus className="w-[18px] h-[18px]" strokeWidth={2.2} />
                 )}
               </button>
 
               {/* 3. Download Button */}
               <button
                 onClick={handleDownload}
-                className="flex items-center justify-center gap-2 w-10 h-10 sm:w-auto sm:h-auto sm:px-5 sm:py-2.5 rounded-full bg-[#161618]/70 hover:bg-white/[0.15] border border-white/[0.18] shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] text-white text-[13.5px] sm:text-[14px] font-medium active:scale-95 transition-all duration-200 backdrop-blur-2xl cursor-pointer"
+                className="flex items-center justify-center gap-2 w-11 h-11 sm:w-auto sm:px-5 rounded-full bg-[#161618]/70 hover:bg-white/[0.15] border border-white/[0.18] shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] text-white text-[14px] sm:text-[15px] font-medium active:scale-95 transition-all duration-200 backdrop-blur-2xl cursor-pointer shrink-0"
                 title={isDownloaded ? "Downloaded" : "Download"}
                 aria-label={isDownloaded ? "Downloaded" : "Download"}
               >
                 {isDownloaded ? (
-                  <Check className="w-4 h-4 text-emerald-400" strokeWidth={2.2} />
+                  <Check className="w-[18px] h-[18px] text-emerald-400" strokeWidth={2.5} />
                 ) : (
-                  <Download className="w-4 h-4" strokeWidth={2.2} />
+                  <Download className="w-[18px] h-[18px]" strokeWidth={2.2} />
                 )}
                 <span className="hidden sm:inline">{isDownloaded ? "Downloaded" : "Download"}</span>
               </button>
@@ -442,11 +442,11 @@ export default function MediaDetail({
               {recommendations.length > 0 && (
                 <button
                   onClick={scrollToSimilar}
-                  className="flex items-center justify-center gap-2 w-10 h-10 sm:w-auto sm:h-auto sm:px-5 sm:py-2.5 rounded-full bg-[#161618]/70 hover:bg-white/[0.15] border border-white/[0.18] shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] text-white text-[13.5px] sm:text-[14px] font-medium active:scale-95 transition-all duration-200 backdrop-blur-2xl cursor-pointer"
+                  className="flex items-center justify-center gap-2 w-11 h-11 sm:w-auto sm:px-5 rounded-full bg-[#161618]/70 hover:bg-white/[0.15] border border-white/[0.18] shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] text-white text-[14px] sm:text-[15px] font-medium active:scale-95 transition-all duration-200 backdrop-blur-2xl cursor-pointer shrink-0"
                   title="Similars"
                   aria-label="Similars"
                 >
-                  <Sparkles className="w-4 h-4 text-amber-300" strokeWidth={2.2} />
+                  <Sparkles className="w-[18px] h-[18px] text-amber-300" strokeWidth={2.2} />
                   <span className="hidden sm:inline">Similars</span>
                 </button>
               )}

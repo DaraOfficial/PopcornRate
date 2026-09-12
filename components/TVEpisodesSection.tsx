@@ -153,12 +153,12 @@ export default function TVEpisodesSection({
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center justify-between gap-3 bg-[#161618]/70 hover:bg-white/[0.12] backdrop-blur-3xl border border-white/[0.18] hover:border-white/30 text-white font-semibold text-sm px-5 py-2.5 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-95 transition-all duration-200 cursor-pointer min-w-[140px]"
+              className="flex items-center justify-between gap-3 bg-[#161618]/70 hover:bg-white/[0.12] backdrop-blur-3xl border border-white/[0.18] hover:border-white/30 text-white font-semibold text-[15px] px-6 py-3 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-95 transition-all duration-200 cursor-pointer min-w-[150px]"
               aria-label="Select season"
             >
               <span>{currentSeasonObj?.name || `Season ${selectedSeason}`}</span>
               <ChevronDown
-                className={`w-4 h-4 text-white/70 transition-transform duration-200 ${
+                className={`w-[18px] h-[18px] text-white/70 transition-transform duration-200 ${
                   isDropdownOpen ? 'rotate-180' : ''
                 }`}
               />
@@ -178,7 +178,7 @@ export default function TVEpisodesSection({
                           setIsDropdownOpen(false);
                           setSearchQuery('');
                         }}
-                        className={`flex items-center justify-between px-3.5 py-2.5 text-sm rounded-xl text-left transition-all duration-150 cursor-pointer ${
+                        className={`flex items-center justify-between px-4 py-3 text-[14px] rounded-xl text-left transition-all duration-150 cursor-pointer ${
                           isCurrent
                             ? 'bg-white/20 text-white font-semibold shadow-inner'
                             : 'text-white/80 hover:text-white hover:bg-white/10'
@@ -201,13 +201,13 @@ export default function TVEpisodesSection({
 
         {/* Search Episode Input (Styled as glass pill matching other buttons) */}
         <div className="relative flex-1 max-w-xs sm:max-w-sm">
-          <Search className="w-4 h-4 text-white/50 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-5 h-5 text-white/50 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search episode..."
-            className="w-full bg-[#161618]/70 hover:bg-[#161618]/90 focus:bg-[#1c1c20]/95 backdrop-blur-3xl border border-white/[0.18] hover:border-white/25 focus:border-white/40 rounded-full pl-10 pr-9 py-2.5 text-sm text-white placeholder-white/45 shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] focus:outline-none transition-all duration-200"
+            className="w-full bg-[#161618]/70 hover:bg-[#161618]/90 focus:bg-[#1c1c20]/95 backdrop-blur-3xl border border-white/[0.18] hover:border-white/25 focus:border-white/40 rounded-full pl-11 pr-10 py-3 text-[15px] text-white placeholder-white/45 shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] focus:outline-none transition-all duration-200"
           />
           {searchQuery && (
             <button
@@ -215,7 +215,7 @@ export default function TVEpisodesSection({
               className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/50 hover:text-white p-1 rounded-full transition"
               aria-label="Clear search"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
@@ -223,12 +223,12 @@ export default function TVEpisodesSection({
         {/* Sort Order Toggle (Styled as frosted glass pill button) */}
         <button
           onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-          className="flex items-center gap-2 bg-[#161618]/70 hover:bg-white/[0.12] backdrop-blur-3xl border border-white/[0.18] hover:border-white/30 text-white/90 hover:text-white text-sm px-4 py-2.5 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-95 transition-all duration-200 cursor-pointer ml-auto"
+          className="flex items-center gap-2 bg-[#161618]/70 hover:bg-white/[0.12] backdrop-blur-3xl border border-white/[0.18] hover:border-white/30 text-white/90 hover:text-white text-[14px] px-5 py-3 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-95 transition-all duration-200 cursor-pointer ml-auto"
           title={sortOrder === 'asc' ? 'Sorting 1 to N' : 'Sorting N to 1'}
           aria-label="Toggle sort order"
         >
-          <ArrowUpDown className="w-4 h-4 text-white/80" />
-          <span className="hidden sm:inline text-xs font-semibold">
+          <ArrowUpDown className="w-[18px] h-[18px] text-white/80" />
+          <span className="hidden sm:inline font-semibold">
             {sortOrder === 'asc' ? '1 → N' : 'N → 1'}
           </span>
         </button>

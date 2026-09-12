@@ -122,13 +122,13 @@ export default function Navbar() {
   const Logo = (
     <Link
       href="/"
-      className="pointer-events-auto flex items-center gap-2.5 sm:gap-3 group active:scale-95 transition-all duration-200"
+      className="pointer-events-auto flex items-center gap-2 sm:gap-3 group active:scale-95 transition-all duration-200"
       aria-label="Popcorn Rate Home"
     >
-      <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-[#161618]/70 hover:bg-white/[0.12] backdrop-blur-3xl border border-white/[0.18] flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] p-1.5 sm:p-2 transition-all duration-200 group-hover:border-white/30 group-hover:scale-105 shrink-0">
+      <div className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 transition-all duration-300 group-hover:scale-110 drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
         <BrandLogo className="w-full h-full" />
       </div>
-      <span className="font-extrabold text-base sm:text-lg md:text-xl tracking-tight text-white flex items-center drop-shadow-md">
+      <span className="font-extrabold text-lg sm:text-xl md:text-2xl tracking-tight text-white flex items-center drop-shadow-md">
         Popcorn<span className="text-amber-400 ml-0.5">Rate</span>
       </span>
     </Link>

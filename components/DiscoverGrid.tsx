@@ -124,7 +124,7 @@ function FilterDropdown({
     <div className="relative pointer-events-auto shrink-0" ref={ref}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] hover:bg-white/[0.12] hover:border-white/30 active:scale-95 transition-all duration-200 text-[13px] font-medium text-white/90"
+        className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] hover:bg-white/[0.12] hover:border-white/30 active:scale-95 transition-all duration-200 text-[14px] font-medium text-white/90"
       >
         {activeDot && <div className="w-1.5 h-1.5 rounded-full bg-white mr-0.5 shadow-[0_0_8px_rgba(255,255,255,0.8)]" />}
         {displayLabel}
@@ -178,7 +178,7 @@ function MultiSelectDropdown({
     <div className="relative pointer-events-auto shrink-0" ref={ref}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] hover:bg-white/[0.12] hover:border-white/30 active:scale-95 transition-all duration-200 text-[13px] font-medium text-white/90"
+        className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] hover:bg-white/[0.12] hover:border-white/30 active:scale-95 transition-all duration-200 text-[14px] font-medium text-white/90"
       >
         {hasSelection && <div className="w-1.5 h-1.5 rounded-full bg-white mr-0.5 shadow-[0_0_8px_rgba(255,255,255,0.8)]" />}
         {label} {hasSelection && <span className="opacity-70 ml-0.5">({selectedIds.length})</span>}
@@ -350,7 +350,7 @@ export default function DiscoverGrid({
           {/* Random / Dice Button */}
           <button 
             onClick={randomize}
-            className="flex items-center justify-center w-[38px] h-[38px] rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] hover:bg-white/[0.12] hover:border-white/30 active:scale-95 transition-all shrink-0 text-white/80 hover:text-white"
+            className="flex items-center justify-center w-11 h-11 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] hover:bg-white/[0.12] hover:border-white/30 active:scale-95 transition-all shrink-0 text-white/80 hover:text-white"
             title="Randomize"
           >
             <Dices className="w-[18px] h-[18px]" strokeWidth={2} />

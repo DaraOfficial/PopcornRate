@@ -38,9 +38,9 @@ export default function PlayTrailerButton({ videos, className }: { videos: any[]
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className={className || "flex items-center gap-2.5 text-white bg-[#161618]/70 hover:bg-white/[0.12] active:scale-95 border border-white/[0.18] shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] py-2.5 px-5 rounded-full backdrop-blur-2xl transition-all duration-200 ease-out font-semibold text-sm md:text-base select-none"}
+        className={className || "flex items-center justify-center gap-2.5 text-white bg-[#161618]/70 hover:bg-white/[0.12] active:scale-95 border border-white/[0.18] shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] py-3 px-6 md:py-3.5 md:px-7 rounded-full backdrop-blur-2xl transition-all duration-200 ease-out font-semibold text-[15px] md:text-[16px] select-none w-full sm:w-auto"}
       >
-        <Play className="w-4 h-4 md:w-5 md:h-5 fill-current" />
+        <Play className="w-[18px] h-[18px] md:w-5 md:h-5 fill-current" />
         Play Trailer
       </button>
 
