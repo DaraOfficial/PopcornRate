@@ -130,7 +130,7 @@ export default function LatestTrailersRow({ popular, inTheaters }: { popular: an
           {trailerItems.map((item: any, index: number) => (
             <div 
               key={item.id} 
-              className="snap-start shrink-0 w-[280px] sm:w-[320px] md:w-[360px] group cursor-pointer"
+              className="snap-start shrink-0 w-[240px] min-[380px]:w-[280px] sm:w-[320px] md:w-[350px] lg:w-[380px] group cursor-pointer select-none"
               onMouseEnter={() => setHoveredIndex(index)}
               onMouseLeave={() => setHoveredIndex(null)}
               onClick={() => handlePlayTrailer(item)}

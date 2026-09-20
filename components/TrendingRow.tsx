@@ -37,7 +37,7 @@ export default function TrendingRow({ today, week }: { today: any[], week: any[]
       
       <ScrollableRow>
         {items.map((item: any) => (
-          <div key={item.id} className="snap-start shrink-0 w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] xl:w-[220px]">
+          <div key={item.id} className="snap-start shrink-0 w-[125px] min-[360px]:w-[138px] min-[400px]:w-[152px] min-[480px]:w-[165px] sm:w-[175px] md:w-[190px] lg:w-[205px] xl:w-[220px] 2xl:w-[235px]">
             <MovieCard movie={item} />
           </div>
         ))}

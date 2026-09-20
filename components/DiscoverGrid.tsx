@@ -406,7 +406,7 @@ export default function DiscoverGrid({
           </div>
         ) : items.length > 0 ? (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
+            <div className="grid grid-cols-2 min-[480px]:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[1800px]:grid-cols-8 gap-2.5 min-[380px]:gap-3 sm:gap-4 md:gap-5 lg:gap-6">
               {items.map((item: any, i: number) => (
                 <MovieCard key={`${item.id}-${i}`} movie={item} />
               ))}

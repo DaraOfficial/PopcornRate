@@ -646,11 +646,11 @@ export default function MediaDetail({
                 Cast &amp; Crew
               </h2>
             </div>
-            <ScrollableRow className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-6 pt-2 custom-scrollbar">
+            <ScrollableRow className="flex gap-2.5 min-[380px]:gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory pb-6 pt-2 custom-scrollbar">
               {cast.map((person: any) => (
                 <div
                   key={person.id}
-                  className="w-[120px] sm:w-[138px] shrink-0 snap-start rounded-xl overflow-hidden bg-[#161618]/80 border border-white/10 shadow-md flex flex-col"
+                  className="w-[110px] min-[360px]:w-[120px] min-[420px]:w-[130px] sm:w-[140px] md:w-[150px] shrink-0 snap-start rounded-xl sm:rounded-2xl overflow-hidden bg-[#161618]/80 border border-white/10 shadow-md flex flex-col select-none"
                 >
                   <div className="relative w-full aspect-[2/3] bg-white/5">
                     {person.profile_path ? (
@@ -807,8 +807,8 @@ export default function MediaDetail({
               <Sparkles className="w-5 h-5 text-amber-300" />
               <span>More Like This</span>
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6 gap-y-8 sm:gap-y-10">
-              {recommendations.slice(0, 12).map((item: any) => (
+            <div className="grid grid-cols-2 min-[480px]:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[1800px]:grid-cols-8 gap-2.5 min-[380px]:gap-3 sm:gap-4 md:gap-5 lg:gap-6 gap-y-6 sm:gap-y-8 md:gap-y-10">
+              {recommendations.slice(0, 14).map((item: any) => (
                 <MovieCard key={item.id} movie={item} />
               ))}
             </div>
