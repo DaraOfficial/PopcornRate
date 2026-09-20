@@ -10,15 +10,19 @@ export default function WatchlistPage() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('popcorn-watchlist');
-      if (saved) {
-        setWatchlist(JSON.parse(saved));
+    const timer = setTimeout(() => {
+      try {
+        const saved = localStorage.getItem('popcorn-watchlist');
+        if (saved) {
+          setWatchlist(JSON.parse(saved));
+        }
+      } catch (err) {
+        console.error('Failed to load watchlist', err);
+      } finally {
+        setIsLoaded(true);
       }
-    } catch (err) {
-      console.error('Failed to load watchlist', err);
-    }
-    setIsLoaded(true);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   if (!isLoaded) {
@@ -39,7 +43,7 @@ export default function WatchlistPage() {
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white drop-shadow-sm">
             My List
           </h1>
-          <p className="text-white/60 text-[13px] sm:text-sm mt-1">Movies and shows you've saved to watch later.</p>
+          <p className="text-white/60 text-[13px] sm:text-sm mt-1">Movies and shows you&apos;ve saved to watch later.</p>
         </div>
       </div>
 
@@ -54,7 +58,7 @@ export default function WatchlistPage() {
           </p>
           <Link 
             href="/"
-            className="flex items-center justify-center gap-2 bg-white text-black px-6 py-3 sm:px-8 sm:py-3.5 rounded-full font-semibold text-[15px] sm:text-[16px] shadow-[0_4px_16px_rgba(0,0,0,0.25),0_1px_2px_rgba(0,0,0,0.1)] hover:bg-white/95 active:scale-95 transition-all duration-200 ease-out"
+            className="ios-btn-primary"
           >
             Explore Titles
           </Link>

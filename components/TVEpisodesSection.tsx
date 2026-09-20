@@ -153,7 +153,7 @@ export default function TVEpisodesSection({
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center justify-between gap-3 bg-[#161618]/70 hover:bg-white/[0.12] backdrop-blur-3xl border border-white/[0.18] hover:border-white/30 text-white font-semibold text-[15px] px-6 py-3 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-95 transition-all duration-200 cursor-pointer min-w-[150px]"
+              className="ios-btn-glass min-w-[150px] justify-between font-semibold"
               aria-label="Select season"
             >
               <span>{currentSeasonObj?.name || `Season ${selectedSeason}`}</span>
@@ -207,7 +207,7 @@ export default function TVEpisodesSection({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search episode..."
-            className="w-full bg-[#161618]/70 hover:bg-[#161618]/90 focus:bg-[#1c1c20]/95 backdrop-blur-3xl border border-white/[0.18] hover:border-white/25 focus:border-white/40 rounded-full pl-11 pr-10 py-3 text-[15px] text-white placeholder-white/45 shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] focus:outline-none transition-all duration-200"
+            className="w-full bg-[#161618]/70 hover:bg-[#161618]/90 focus:bg-[#1c1c20]/95 backdrop-blur-3xl border border-white/[0.18] hover:border-white/25 focus:border-white/40 rounded-full pl-11 pr-10 py-3 text-[16px] text-white placeholder-white/45 shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] focus:outline-none transition-all duration-200"
           />
           {searchQuery && (
             <button
@@ -223,7 +223,7 @@ export default function TVEpisodesSection({
         {/* Sort Order Toggle (Styled as frosted glass pill button) */}
         <button
           onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-          className="flex items-center gap-2 bg-[#161618]/70 hover:bg-white/[0.12] backdrop-blur-3xl border border-white/[0.18] hover:border-white/30 text-white/90 hover:text-white text-[14px] px-5 py-3 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-95 transition-all duration-200 cursor-pointer ml-auto"
+          className="ios-btn-glass text-[14px] px-5 ml-auto"
           title={sortOrder === 'asc' ? 'Sorting 1 to N' : 'Sorting N to 1'}
           aria-label="Toggle sort order"
         >
@@ -319,10 +319,10 @@ export default function TVEpisodesSection({
                   <div className="sm:self-center shrink-0 ml-auto sm:ml-0">
                     <button
                       onClick={(e) => toggleDownload(episode, e)}
-                      className={`w-10 h-10 md:w-11 md:h-11 rounded-full backdrop-blur-3xl border shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-90 flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                      className={`ios-btn-circle ${
                         isDownloaded
-                          ? 'bg-white/25 text-white border-white/40 shadow-[0_4px_20px_rgba(255,255,255,0.2)]'
-                          : 'bg-[#161618]/70 hover:bg-white/[0.15] border-white/[0.18] hover:border-white/30 text-white/80 hover:text-white'
+                          ? '!bg-white/25 !text-white !border-white/40 shadow-[0_4px_20px_rgba(255,255,255,0.2)]'
+                          : ''
                       }`}
                       title={isDownloaded ? 'Downloaded' : 'Download episode'}
                       aria-label="Download episode"

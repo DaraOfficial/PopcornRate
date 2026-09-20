@@ -124,7 +124,7 @@ function FilterDropdown({
     <div className="relative pointer-events-auto shrink-0" ref={ref}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] hover:bg-white/[0.12] hover:border-white/30 active:scale-95 transition-all duration-200 text-[14px] font-medium text-white/90"
+        className="ios-btn-glass text-[14px]"
       >
         {activeDot && <div className="w-1.5 h-1.5 rounded-full bg-white mr-0.5 shadow-[0_0_8px_rgba(255,255,255,0.8)]" />}
         {displayLabel}
@@ -178,7 +178,7 @@ function MultiSelectDropdown({
     <div className="relative pointer-events-auto shrink-0" ref={ref}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] hover:bg-white/[0.12] hover:border-white/30 active:scale-95 transition-all duration-200 text-[14px] font-medium text-white/90"
+        className="ios-btn-glass text-[14px]"
       >
         {hasSelection && <div className="w-1.5 h-1.5 rounded-full bg-white mr-0.5 shadow-[0_0_8px_rgba(255,255,255,0.8)]" />}
         {label} {hasSelection && <span className="opacity-70 ml-0.5">({selectedIds.length})</span>}
@@ -350,8 +350,9 @@ export default function DiscoverGrid({
           {/* Random / Dice Button */}
           <button 
             onClick={randomize}
-            className="flex items-center justify-center w-11 h-11 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] hover:bg-white/[0.12] hover:border-white/30 active:scale-95 transition-all shrink-0 text-white/80 hover:text-white"
+            className="ios-btn-circle shrink-0"
             title="Randomize"
+            aria-label="Randomize"
           >
             <Dices className="w-[18px] h-[18px]" strokeWidth={2} />
           </button>
@@ -417,7 +418,7 @@ export default function DiscoverGrid({
                   <button
                     onClick={() => { setIsAutoLoadEnabled(true); loadMore(); }}
                     disabled={isLoadingMore}
-                    className="bg-[#161618]/70 hover:bg-white/[0.12] text-white border border-white/[0.18] shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] px-8 py-3 rounded-full font-semibold transition-all duration-200 active:scale-95 disabled:opacity-50 flex items-center gap-2 backdrop-blur-2xl select-none"
+                    className="ios-btn-glass px-8 font-semibold select-none disabled:opacity-50"
                   >
                     {isLoadingMore ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Load More'}
                   </button>
@@ -432,7 +433,7 @@ export default function DiscoverGrid({
             <p className="text-xl text-white/70">No results found matching your filters.</p>
             <button 
               onClick={clearAllFilters}
-              className="mt-6 inline-flex items-center px-5 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/10 text-white text-sm font-medium active:scale-95 transition-all"
+              className="mt-6 ios-btn-primary"
             >
               Clear all filters
             </button>

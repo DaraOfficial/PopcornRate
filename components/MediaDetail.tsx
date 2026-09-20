@@ -259,7 +259,7 @@ export default function MediaDetail({
         {/* Navigation Back Button */}
         <button
           onClick={handleBack}
-          className="pointer-events-auto flex items-center justify-center w-11 h-11 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] text-white/85 hover:text-white hover:bg-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-90 transition-all duration-200 ease-out cursor-pointer"
+          className="pointer-events-auto ios-btn-circle"
           aria-label="Go back"
         >
           <ChevronLeft className="w-[22px] h-[22px] mr-0.5" strokeWidth={2.2} />
@@ -269,7 +269,7 @@ export default function MediaDetail({
         <div className="pointer-events-auto flex items-center gap-2.5">
           <button
             onClick={handleShare}
-            className="flex items-center justify-center w-11 h-11 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] text-white/80 hover:text-white hover:bg-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-90 transition-all duration-200 ease-out cursor-pointer"
+            className="ios-btn-circle"
             aria-label="Share"
             title="Share this title"
           >
@@ -281,7 +281,7 @@ export default function MediaDetail({
               setIsMuted(!isMuted);
               triggerToast(isMuted ? "Audio enabled" : "Audio muted");
             }}
-            className="flex items-center justify-center w-11 h-11 rounded-full bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] text-white/80 hover:text-white hover:bg-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.22)] active:scale-90 transition-all duration-200 ease-out cursor-pointer"
+            className="ios-btn-circle"
             aria-label={isMuted ? "Unmute" : "Mute"}
             title={isMuted ? "Unmute" : "Mute"}
           >
@@ -401,7 +401,7 @@ export default function MediaDetail({
                     triggerToast("No trailer video preview found");
                   }
                 }}
-                className="flex flex-1 sm:flex-none items-center justify-center gap-2 bg-white text-black font-semibold text-[15px] sm:text-[16px] h-11 px-6 sm:px-8 rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.3),0_1px_2px_rgba(0,0,0,0.1)] hover:bg-white/95 active:scale-95 transition-all duration-200 cursor-pointer"
+                className="ios-btn-primary flex-1 sm:flex-none"
                 title="Play"
                 aria-label="Play"
               >
@@ -412,7 +412,7 @@ export default function MediaDetail({
               {/* 2. Add to Watchlist (+) Button */}
               <button
                 onClick={toggleWatchlist}
-                className="flex items-center justify-center w-11 h-11 rounded-full bg-[#161618]/70 hover:bg-white/[0.15] border border-white/[0.18] shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] text-white active:scale-90 transition-all duration-200 backdrop-blur-2xl cursor-pointer shrink-0"
+                className="ios-btn-circle"
                 title={isInWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
                 aria-label="Add to Watchlist"
               >
@@ -426,7 +426,7 @@ export default function MediaDetail({
               {/* 3. Download Button */}
               <button
                 onClick={handleDownload}
-                className="flex items-center justify-center gap-2 w-11 h-11 sm:w-auto sm:px-5 rounded-full bg-[#161618]/70 hover:bg-white/[0.15] border border-white/[0.18] shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] text-white text-[14px] sm:text-[15px] font-medium active:scale-95 transition-all duration-200 backdrop-blur-2xl cursor-pointer shrink-0"
+                className="ios-btn-glass w-11 h-11 sm:w-auto sm:px-5 shrink-0"
                 title={isDownloaded ? "Downloaded" : "Download"}
                 aria-label={isDownloaded ? "Downloaded" : "Download"}
               >
@@ -442,7 +442,7 @@ export default function MediaDetail({
               {recommendations.length > 0 && (
                 <button
                   onClick={scrollToSimilar}
-                  className="flex items-center justify-center gap-2 w-11 h-11 sm:w-auto sm:px-5 rounded-full bg-[#161618]/70 hover:bg-white/[0.15] border border-white/[0.18] shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] text-white text-[14px] sm:text-[15px] font-medium active:scale-95 transition-all duration-200 backdrop-blur-2xl cursor-pointer shrink-0"
+                  className="ios-btn-glass w-11 h-11 sm:w-auto sm:px-5 shrink-0"
                   title="Similars"
                   aria-label="Similars"
                 >
@@ -475,7 +475,7 @@ export default function MediaDetail({
           >
             <button
               onClick={() => setIsTrailerOpen(false)}
-              className="absolute top-4 right-4 z-10 w-10 h-10 bg-[#161618]/80 hover:bg-white/[0.15] border border-white/[0.18] rounded-full flex items-center justify-center text-white/80 hover:text-white transition-all backdrop-blur-2xl shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-90 cursor-pointer"
+              className="absolute top-4 right-4 z-10 ios-btn-circle"
               aria-label="Close trailer modal"
             >
               <X className="w-5 h-5" strokeWidth={2.2} />

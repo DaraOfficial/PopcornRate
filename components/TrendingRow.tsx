@@ -19,24 +19,16 @@ export default function TrendingRow({ today, week }: { today: any[], week: any[]
         </h2>
         
         {/* iOS Segmented Control Switch */}
-        <div className="inline-flex items-center rounded-full border border-white/[0.15] p-1 bg-[#161618]/70 backdrop-blur-2xl shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] self-start sm:self-auto gap-0.5 select-none">
+        <div className="ios-segmented-track self-start sm:self-auto">
           <button
             onClick={() => setTimeWindow('day')}
-            className={`px-4 sm:px-5 py-1.5 text-[13px] sm:text-[13.5px] -tracking-[0.01em] rounded-full transition-all duration-200 ease-out whitespace-nowrap active:scale-95 ${
-              timeWindow === 'day' 
-                ? 'bg-white text-black font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.18),0_1px_2px_rgba(0,0,0,0.1)]'
-                : 'text-white/60 hover:text-white hover:bg-white/[0.06] font-medium'
-            }`}
+            className={timeWindow === 'day' ? 'ios-segmented-btn-active' : 'ios-segmented-btn-inactive'}
           >
             Today
           </button>
           <button
             onClick={() => setTimeWindow('week')}
-            className={`px-4 sm:px-5 py-1.5 text-[13px] sm:text-[13.5px] -tracking-[0.01em] rounded-full transition-all duration-200 ease-out whitespace-nowrap active:scale-95 ${
-              timeWindow === 'week'
-                ? 'bg-white text-black font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.18),0_1px_2px_rgba(0,0,0,0.1)]'
-                : 'text-white/60 hover:text-white hover:bg-white/[0.06] font-medium'
-            }`}
+            className={timeWindow === 'week' ? 'ios-segmented-btn-active' : 'ios-segmented-btn-inactive'}
           >
             This Week
           </button>

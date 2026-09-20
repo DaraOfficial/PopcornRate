@@ -110,7 +110,7 @@ export default function LatestTrailersRow({ popular, inTheaters }: { popular: an
           </h2>
           
           {/* iOS Segmented Control Switch */}
-          <div className="inline-flex items-center rounded-full border border-white/[0.15] p-1 bg-[#161618]/70 backdrop-blur-2xl shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] self-start sm:self-auto overflow-x-auto hide-scrollbar max-w-full gap-0.5">
+          <div className="ios-segmented-track self-start sm:self-auto overflow-x-auto hide-scrollbar max-w-full">
             {[
               { id: 'popular', label: 'Popular' },
               { id: 'inTheaters', label: 'In Theaters' }
@@ -118,11 +118,7 @@ export default function LatestTrailersRow({ popular, inTheaters }: { popular: an
               <button
                 key={tab.id}
                 onClick={() => { setActiveTab(tab.id as TabType); setHoveredIndex(null); }}
-                className={`px-4 sm:px-5 py-1.5 text-[13px] sm:text-[13.5px] -tracking-[0.01em] rounded-full transition-all duration-200 ease-out whitespace-nowrap active:scale-95 ${
-                  activeTab === tab.id 
-                    ? 'bg-white text-black font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.18),0_1px_2px_rgba(0,0,0,0.1)]'
-                    : 'text-white/60 hover:text-white hover:bg-white/[0.06] font-medium'
-                }`}
+                className={activeTab === tab.id ? 'ios-segmented-btn-active' : 'ios-segmented-btn-inactive'}
               >
                 {tab.label}
               </button>
@@ -186,7 +182,7 @@ export default function LatestTrailersRow({ popular, inTheaters }: { popular: an
           >
             <button 
               onClick={() => setPlayingVideoId(null)}
-              className="absolute top-4 right-4 z-10 w-10 h-10 bg-[#161618]/80 hover:bg-white/[0.15] border border-white/[0.18] rounded-full flex items-center justify-center text-white/80 hover:text-white transition-all backdrop-blur-2xl shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-90"
+              className="absolute top-4 right-4 z-10 ios-btn-circle"
               aria-label="Close trailer modal"
             >
               <X className="w-5 h-5" strokeWidth={2.2} />

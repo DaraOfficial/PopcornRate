@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, Suspense, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   Home,
   Search,
@@ -14,63 +14,12 @@ import {
   Check,
 } from "lucide-react";
 import BrandLogo from "./BrandLogo";
-
-function SearchInput() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [isOpen, setIsOpen] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const query = formData.get("q");
-    if (query) {
-      router.push(`/?q=${encodeURIComponent(query as string)}`);
-      setIsOpen(false);
-    } else {
-      router.push("/");
-    }
-  };
-
-  return (
-    <div className="relative flex items-center">
-      <button
-        onClick={() => {
-          setIsOpen(!isOpen);
-          if (!isOpen) setTimeout(() => inputRef.current?.focus(), 10);
-        }}
-        className="flex items-center justify-center w-10 h-10 sm:w-8 sm:h-8 rounded-full text-white/70 hover:text-white hover:bg-white/[0.08] active:bg-white/[0.15] active:scale-90 transition-all duration-150"
-        aria-label="Search"
-      >
-        <Search className="w-5 h-5 sm:w-[18px] sm:h-[18px]" strokeWidth={2.2} />
-      </button>
-
-      <div
-        className={`overflow-hidden transition-all duration-300 ease-out ${
-          isOpen ? "w-32 sm:w-44 opacity-100 ml-1.5" : "w-0 opacity-0 ml-0"
-        }`}
-      >
-        <form onSubmit={handleSubmit}>
-          <input
-            ref={inputRef}
-            name="q"
-            defaultValue={searchParams?.get("q") || ""}
-            placeholder="Search..."
-            className="w-full bg-white/[0.1] border border-white/[0.12] rounded-full px-3 py-1 text-[13px] text-white placeholder:text-white/45 outline-none focus:border-white/30 transition-colors"
-            onBlur={() => {
-              if (!searchParams?.get("q")) setIsOpen(false);
-            }}
-          />
-        </form>
-      </div>
-    </div>
-  );
-}
+import SearchModal from "./SearchModal";
 
 export default function Navbar() {
   const [isHidden, setIsHidden] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
@@ -99,6 +48,18 @@ export default function Navbar() {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Cmd+K or Ctrl+K shortcut to open search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   // Close settings dropdown on click outside
@@ -245,13 +206,18 @@ export default function Navbar() {
 
             {/* iOS Quick Actions */}
             <div className="flex items-center gap-1 sm:gap-0.5 pr-1 sm:pr-0">
-              <Suspense
-                fallback={
-                  <div className="w-8 h-8 rounded-full bg-white/5 animate-pulse" />
-                }
+              <button
+                onClick={() => setIsSearchOpen(true)}
+                className={`flex items-center justify-center w-10 h-10 sm:w-8 sm:h-8 rounded-full transition-all duration-150 cursor-pointer ${
+                  isSearchOpen
+                    ? "text-white bg-white/20 scale-105"
+                    : "text-white/70 hover:text-white hover:bg-white/[0.08] active:bg-white/[0.15] active:scale-90"
+                }`}
+                aria-label="Search"
+                title="Search (Cmd+K)"
               >
-                <SearchInput />
-              </Suspense>
+                <Search className="w-5 h-5 sm:w-[18px] sm:h-[18px]" strokeWidth={2.2} />
+              </button>
 
               <button
                 onClick={() => setIsSettingsOpen(!isSettingsOpen)}
@@ -317,6 +283,12 @@ export default function Navbar() {
         </div>
       </div>
     </header>
+
+    {/* Centered Search Bar with Backdrop Blur */}
+    <SearchModal
+      isOpen={isSearchOpen}
+      onClose={() => setIsSearchOpen(false)}
+    />
     </>
   );
 }
