@@ -27,6 +27,7 @@ import {
   Star,
   Clapperboard,
   Layers,
+  ListVideo,
 } from "lucide-react";
 import MovieCard from "./MovieCard";
 import TVEpisodesSection from "./TVEpisodesSection";
@@ -241,6 +242,15 @@ export default function MediaDetail({
     }
   };
 
+  const scrollToEpisodes = () => {
+    const el = document.getElementById("episodes-section");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      triggerToast("Episodes not available for this series");
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     if (!amount || amount <= 0) return null;
     if (amount >= 1_000_000_000) {
@@ -423,26 +433,38 @@ export default function MediaDetail({
                 )}
               </button>
 
-              {/* 3. Download Button */}
-              <button
-                onClick={handleDownload}
-                className="ios-btn-glass w-11 h-11 sm:w-auto sm:px-5 shrink-0"
-                title={isDownloaded ? "Downloaded" : "Download"}
-                aria-label={isDownloaded ? "Downloaded" : "Download"}
-              >
-                {isDownloaded ? (
-                  <Check className="w-[18px] h-[18px] text-emerald-400" strokeWidth={2.5} />
-                ) : (
-                  <Download className="w-[18px] h-[18px]" strokeWidth={2.2} />
-                )}
-                <span className="hidden sm:inline">{isDownloaded ? "Downloaded" : "Download"}</span>
-              </button>
+              {/* 3. Episodes Button for TV Shows, Download Button for Movies */}
+              {type === "tv" ? (
+                <button
+                  onClick={scrollToEpisodes}
+                  className="ios-btn-circle-responsive"
+                  title="Episodes"
+                  aria-label="Episodes"
+                >
+                  <ListVideo className="w-[18px] h-[18px] text-white" strokeWidth={2.2} />
+                  <span className="hidden sm:inline">Episodes</span>
+                </button>
+              ) : (
+                <button
+                  onClick={handleDownload}
+                  className="ios-btn-circle-responsive"
+                  title={isDownloaded ? "Downloaded" : "Download"}
+                  aria-label={isDownloaded ? "Downloaded" : "Download"}
+                >
+                  {isDownloaded ? (
+                    <Check className="w-[18px] h-[18px] text-emerald-400" strokeWidth={2.5} />
+                  ) : (
+                    <Download className="w-[18px] h-[18px]" strokeWidth={2.2} />
+                  )}
+                  <span className="hidden sm:inline">{isDownloaded ? "Downloaded" : "Download"}</span>
+                </button>
+              )}
 
               {/* 4. Similars Button */}
               {recommendations.length > 0 && (
                 <button
                   onClick={scrollToSimilar}
-                  className="ios-btn-glass w-11 h-11 sm:w-auto sm:px-5 shrink-0"
+                  className="ios-btn-circle-responsive"
                   title="Similars"
                   aria-label="Similars"
                 >
@@ -621,7 +643,7 @@ export default function MediaDetail({
 
         {/* TV Episodes Section (matching reference image) */}
         {type === "tv" && media.seasons && (
-          <div className="mb-16 md:mb-20">
+          <div id="episodes-section" className="mb-16 md:mb-20 scroll-mt-28">
             <TVEpisodesSection
               tvId={media.id}
               seasons={media.seasons}
