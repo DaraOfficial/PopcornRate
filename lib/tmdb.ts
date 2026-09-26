@@ -116,13 +116,17 @@ export async function getSeasonDetails(tvId: string | number, seasonNumber: numb
 
 export async function getMovieDetails(id: string) {
   return fetchTMDB(`/movie/${id}`, { 
-    append_to_response: 'reviews,watch/providers,credits,recommendations,videos,keywords,images' 
+    append_to_response: 'reviews,watch/providers,credits,recommendations,videos,keywords,images',
+    include_image_language: 'en,null',
+    include_video_language: 'en,null'
   });
 }
 
 export async function getTVDetails(id: string) {
   return fetchTMDB(`/tv/${id}`, { 
-    append_to_response: 'reviews,watch/providers,credits,recommendations,videos,keywords,images' 
+    append_to_response: 'reviews,watch/providers,credits,recommendations,videos,keywords,images',
+    include_image_language: 'en,null',
+    include_video_language: 'en,null'
   });
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -15,8 +15,8 @@ import {
   Sparkles,
   Volume2,
   VolumeX,
+  RotateCcw,
   X,
-  Share2,
   ExternalLink,
   Tv,
   Film,
@@ -49,6 +49,32 @@ export default function MediaDetail({
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
+  // Netflix-style Hero Background Trailer state & refs
+  const heroSectionRef = useRef<HTMLDivElement | null>(null);
+  const heroIframeRef = useRef<HTMLIFrameElement | null>(null);
+  const readyFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [shouldMountHeroTrailer, setShouldMountHeroTrailer] = useState(false);
+  const [isHeroTrailerPlaying, setIsHeroTrailerPlaying] = useState(false);
+  const [isHeroTrailerEnded, setIsHeroTrailerEnded] = useState(false);
+  const [isUserIdle, setIsUserIdle] = useState(false);
+
+  // Best trailer (prioritize Official YouTube Trailer -> YouTube Trailer -> Teaser -> any YouTube video)
+  const videosList: any[] = media?.videos?.results || [];
+  const trailerVideo =
+    videosList.find(
+      (v: any) => v.site === "YouTube" && v.type === "Trailer" && v.official
+    ) ||
+    videosList.find(
+      (v: any) => v.site === "YouTube" && v.type === "Trailer"
+    ) ||
+    videosList.find(
+      (v: any) => v.site === "YouTube" && v.type === "Teaser"
+    ) ||
+    videosList.find((v: any) => v.site === "YouTube");
+  const trailerKey: string | null = trailerVideo?.key || null;
+
   useEffect(() => {
     if (!media?.id) return;
     const timer = setTimeout(() => {
@@ -66,6 +92,159 @@ export default function MediaDetail({
     }, 0);
     return () => clearTimeout(timer);
   }, [media?.id]);
+
+  // Mount and autoplay the hero trailer shortly after user visits the detail page (Netflix-style)
+  useEffect(() => {
+    setShouldMountHeroTrailer(false);
+    setIsHeroTrailerPlaying(false);
+    setIsHeroTrailerEnded(false);
+
+    if (!trailerKey) return;
+
+    const timer = setTimeout(() => {
+      setShouldMountHeroTrailer(true);
+    }, 550);
+
+    return () => {
+      clearTimeout(timer);
+      if (readyFallbackTimerRef.current) {
+        clearTimeout(readyFallbackTimerRef.current);
+      }
+    };
+  }, [trailerKey]);
+
+  // Listen to YouTube IFrame Player API state changes for seamless crossfade & replay detection
+  useEffect(() => {
+    if (!shouldMountHeroTrailer || !trailerKey) return;
+
+    const handleMessage = (event: MessageEvent) => {
+      if (!event.origin.includes("youtube.com")) return;
+      try {
+        const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+        if (!data) return;
+
+        const playerState =
+          data.event === "onStateChange"
+            ? data.info
+            : data.event === "infoDelivery" &&
+              data.info &&
+              typeof data.info.playerState === "number"
+            ? data.info.playerState
+            : undefined;
+
+        if (playerState === 1) {
+          // Video is actively playing
+          if (readyFallbackTimerRef.current) {
+            clearTimeout(readyFallbackTimerRef.current);
+          }
+          setIsHeroTrailerPlaying(true);
+          setIsHeroTrailerEnded(false);
+        } else if (playerState === 0) {
+          // Video ended -> smoothly fade back to backdrop image
+          setIsHeroTrailerPlaying(false);
+          setIsHeroTrailerEnded(true);
+        }
+      } catch {
+        // Ignore non-JSON messages
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [shouldMountHeroTrailer, trailerKey]);
+
+  // Pause hero background trailer when fullscreen modal opens, resume when closed
+  useEffect(() => {
+    const iframeWin = heroIframeRef.current?.contentWindow;
+    if (!iframeWin || !shouldMountHeroTrailer || isHeroTrailerEnded) return;
+
+    if (isTrailerOpen) {
+      iframeWin.postMessage(
+        JSON.stringify({ event: "command", func: "pauseVideo", args: [] }),
+        "*"
+      );
+    } else {
+      iframeWin.postMessage(
+        JSON.stringify({ event: "command", func: "playVideo", args: [] }),
+        "*"
+      );
+    }
+  }, [isTrailerOpen, shouldMountHeroTrailer, isHeroTrailerEnded]);
+
+  // Pause hero background trailer when user scrolls past the hero section, resume when scrolling back up
+  useEffect(() => {
+    const heroEl = heroSectionRef.current;
+    if (!heroEl || !shouldMountHeroTrailer) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        const iframeWin = heroIframeRef.current?.contentWindow;
+        if (!iframeWin || isHeroTrailerEnded || isTrailerOpen) return;
+
+        if (entry.isIntersecting) {
+          iframeWin.postMessage(
+            JSON.stringify({ event: "command", func: "playVideo", args: [] }),
+            "*"
+          );
+        } else {
+          iframeWin.postMessage(
+            JSON.stringify({ event: "command", func: "pauseVideo", args: [] }),
+            "*"
+          );
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    observer.observe(heroEl);
+    return () => observer.disconnect();
+  }, [shouldMountHeroTrailer, isHeroTrailerEnded, isTrailerOpen]);
+
+  // Hide hero details & drop title logo above buttons after trailer plays if user is not moving the mouse
+  useEffect(() => {
+    if (!isHeroTrailerPlaying || isHeroTrailerEnded || isTrailerOpen) {
+      setIsUserIdle(false);
+      if (idleTimerRef.current) {
+        clearTimeout(idleTimerRef.current);
+      }
+      return;
+    }
+
+    const startIdleTimer = () => {
+      if (idleTimerRef.current) {
+        clearTimeout(idleTimerRef.current);
+      }
+      idleTimerRef.current = setTimeout(() => {
+        setIsUserIdle(true);
+      }, 2500);
+    };
+
+    const handleUserActivity = () => {
+      setIsUserIdle(false);
+      startIdleTimer();
+    };
+
+    startIdleTimer();
+
+    window.addEventListener("mousemove", handleUserActivity, { passive: true });
+    window.addEventListener("mousedown", handleUserActivity, { passive: true });
+    window.addEventListener("touchstart", handleUserActivity, { passive: true });
+    window.addEventListener("keydown", handleUserActivity, { passive: true });
+
+    return () => {
+      if (idleTimerRef.current) {
+        clearTimeout(idleTimerRef.current);
+      }
+      window.removeEventListener("mousemove", handleUserActivity);
+      window.removeEventListener("mousedown", handleUserActivity);
+      window.removeEventListener("touchstart", handleUserActivity);
+      window.removeEventListener("keydown", handleUserActivity);
+    };
+  }, [isHeroTrailerPlaying, isHeroTrailerEnded, isTrailerOpen]);
+
+  const isDetailsCollapsed =
+    isHeroTrailerPlaying && !isHeroTrailerEnded && !isTrailerOpen && isUserIdle;
 
   if (!media) return null;
 
@@ -118,13 +297,6 @@ export default function MediaDetail({
       (l: any) => l.iso_639_1 === "en" || !l.iso_639_1
     ) || media.images?.logos?.[0];
 
-  // Best trailer
-  const trailerVideo =
-    media.videos?.results?.find(
-      (v: any) =>
-        (v.type === "Trailer" || v.type === "Teaser") && v.site === "YouTube"
-    ) || media.videos?.results?.find((v: any) => v.site === "YouTube");
-
   const genresList: string[] =
     media.genres?.map((g: any) => g.name).slice(0, 4) || [];
 
@@ -166,34 +338,92 @@ export default function MediaDetail({
     }, 2800);
   };
 
+  const handleHeroIframeLoad = () => {
+    const iframeWin = heroIframeRef.current?.contentWindow;
+    if (iframeWin) {
+      iframeWin.postMessage(
+        JSON.stringify({ event: "listening", id: "hero-trailer", channel: "widget" }),
+        "*"
+      );
+      iframeWin.postMessage(
+        JSON.stringify({ event: "command", func: "playVideo", args: [] }),
+        "*"
+      );
+    }
+    if (readyFallbackTimerRef.current) {
+      clearTimeout(readyFallbackTimerRef.current);
+    }
+    readyFallbackTimerRef.current = setTimeout(() => {
+      setIsHeroTrailerPlaying(true);
+    }, 1100);
+  };
+
+  const handleAudioOrReplay = () => {
+    if (!trailerKey) {
+      setIsMuted((prev) => !prev);
+      triggerToast(isMuted ? "Audio enabled" : "Audio muted");
+      return;
+    }
+
+    const iframeWin = heroIframeRef.current?.contentWindow;
+
+    if (isHeroTrailerEnded) {
+      setIsHeroTrailerEnded(false);
+      setIsHeroTrailerPlaying(true);
+      if (iframeWin) {
+        iframeWin.postMessage(
+          JSON.stringify({ event: "command", func: "seekTo", args: [0, true] }),
+          "*"
+        );
+        iframeWin.postMessage(
+          JSON.stringify({ event: "command", func: "playVideo", args: [] }),
+          "*"
+        );
+      }
+      triggerToast("Replaying trailer");
+      return;
+    }
+
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+
+    if (iframeWin) {
+      iframeWin.postMessage(
+        JSON.stringify({
+          event: "command",
+          func: nextMuted ? "mute" : "unMute",
+          args: [],
+        }),
+        "*"
+      );
+      if (!nextMuted) {
+        iframeWin.postMessage(
+          JSON.stringify({
+            event: "command",
+            func: "setVolume",
+            args: [100],
+          }),
+          "*"
+        );
+        iframeWin.postMessage(
+          JSON.stringify({
+            event: "command",
+            func: "playVideo",
+            args: [],
+          }),
+          "*"
+        );
+      }
+    }
+
+    triggerToast(nextMuted ? "Audio muted" : "Audio enabled");
+  };
+
   const handleBack = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {
       router.back();
     } else {
       router.push("/");
-    }
-  };
-
-  const handleShare = async () => {
-    if (typeof window === "undefined") return;
-    const url = window.location.href;
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${title} - Popcorn Rate`,
-          text: `Check out ${title} on Popcorn Rate!`,
-          url,
-        });
-        return;
-      } catch {
-        // user cancelled or fallback
-      }
-    }
-    try {
-      await navigator.clipboard.writeText(url);
-      triggerToast("Link copied to clipboard!");
-    } catch {
-      triggerToast("Failed to copy link");
     }
   };
 
@@ -275,27 +505,29 @@ export default function MediaDetail({
           <ChevronLeft className="w-[22px] h-[22px] mr-0.5" strokeWidth={2.2} />
         </button>
 
-        {/* Right Actions: Share & Audio Controls */}
+        {/* Right Actions: Audio/Replay Control */}
         <div className="pointer-events-auto flex items-center gap-2.5">
           <button
-            onClick={handleShare}
+            onClick={handleAudioOrReplay}
             className="ios-btn-circle"
-            aria-label="Share"
-            title="Share this title"
+            aria-label={
+              isHeroTrailerEnded
+                ? "Replay trailer"
+                : isMuted
+                ? "Unmute trailer"
+                : "Mute trailer"
+            }
+            title={
+              isHeroTrailerEnded
+                ? "Replay trailer"
+                : isMuted
+                ? "Unmute trailer"
+                : "Mute trailer"
+            }
           >
-            <Share2 className="w-[18px] h-[18px]" strokeWidth={2.2} />
-          </button>
-
-          <button
-            onClick={() => {
-              setIsMuted(!isMuted);
-              triggerToast(isMuted ? "Audio enabled" : "Audio muted");
-            }}
-            className="ios-btn-circle"
-            aria-label={isMuted ? "Unmute" : "Mute"}
-            title={isMuted ? "Unmute" : "Mute"}
-          >
-            {isMuted ? (
+            {isHeroTrailerEnded ? (
+              <RotateCcw className="w-[18px] h-[18px]" strokeWidth={2.2} />
+            ) : isMuted ? (
               <VolumeX className="w-[18px] h-[18px]" strokeWidth={2.2} />
             ) : (
               <Volume2 className="w-[18px] h-[18px]" strokeWidth={2.2} />
@@ -305,8 +537,11 @@ export default function MediaDetail({
       </div>
 
       {/* Hero Section */}
-      <div className="relative w-full min-h-[75vh] md:min-h-[85vh] lg:min-h-[88vh] flex flex-col justify-end overflow-hidden">
-        {/* Full-bleed Cinematic Backdrop */}
+      <div
+        ref={heroSectionRef}
+        className="relative w-full min-h-[75vh] md:min-h-[85vh] lg:min-h-[88vh] flex flex-col justify-end overflow-hidden"
+      >
+        {/* Full-bleed Cinematic Backdrop Image (Base Layer) */}
         {media.backdrop_path ? (
           <div className="absolute inset-0 z-0">
             <Image
@@ -325,12 +560,50 @@ export default function MediaDetail({
           <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#1a1a1c] to-black" />
         )}
 
+        {/* Netflix-Style Auto-Playing Hero Background Trailer */}
+        {shouldMountHeroTrailer && trailerKey && (
+          <div
+            className={`absolute inset-0 z-[1] overflow-hidden pointer-events-none transition-opacity duration-1000 ease-out ${
+              isHeroTrailerPlaying && !isHeroTrailerEnded ? "opacity-100" : "opacity-0"
+            }`}
+            aria-hidden="true"
+          >
+            <div className="absolute inset-x-0 top-0 h-[78%] sm:h-full overflow-hidden">
+              <iframe
+                ref={heroIframeRef}
+                onLoad={handleHeroIframeLoad}
+                src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&iv_load_policy=3&disablekb=1&fs=0`}
+                title={`${title} Hero Trailer`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[210vw] sm:w-[177.78vh] min-w-full min-h-full sm:min-h-[56.25vw] aspect-video pointer-events-none scale-[1.18] sm:scale-[1.22] border-0"
+                tabIndex={-1}
+              />
+              {/* Smooth bottom blend on mobile portrait */}
+              <div className="sm:hidden absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black via-black/80 to-transparent" />
+            </div>
+            {/* Cinematic Vignettes over Trailer Video */}
+            <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/70 via-black/25 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-transparent" />
+            <div
+              className={`absolute inset-0 bg-gradient-to-r from-black/85 via-black/35 to-transparent w-full md:w-3/4 transition-opacity duration-700 ${
+                isDetailsCollapsed ? "opacity-40" : "opacity-100"
+              }`}
+            />
+          </div>
+        )}
+
         {/* Hero Content (Positioned at Lower-Left) */}
         <div className="relative z-10 container mx-auto px-4 sm:px-6 md:px-12 lg:px-16 max-w-[1440px] pb-12 md:pb-16 pt-32">
           <div className="max-w-xl md:max-w-2xl flex flex-col items-start">
             {/* Title / Movie Logo */}
             {logo?.file_path ? (
-              <div className="relative h-16 sm:h-24 md:h-28 lg:h-32 w-56 sm:w-80 md:w-96 mb-4 sm:mb-5">
+              <div
+                className={`relative h-16 sm:h-24 md:h-28 lg:h-32 w-56 sm:w-80 md:w-96 origin-bottom-left transition-all duration-700 ease-in-out ${
+                  isDetailsCollapsed
+                    ? "mb-3.5 sm:mb-4 scale-90 sm:scale-[0.88]"
+                    : "mb-4 sm:mb-5 scale-100"
+                }`}
+              >
                 <Image
                   src={getImageUrl(logo.file_path, "original")}
                   alt={title}
@@ -340,65 +613,85 @@ export default function MediaDetail({
                 />
               </div>
             ) : (
-              <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-tight drop-shadow-[0_8px_30px_rgba(0,0,0,0.9)] mb-4">
+              <h1
+                className={`text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-tight drop-shadow-[0_8px_30px_rgba(0,0,0,0.9)] origin-bottom-left transition-all duration-700 ease-in-out ${
+                  isDetailsCollapsed
+                    ? "mb-3.5 sm:mb-4 scale-90 sm:scale-[0.88]"
+                    : "mb-4 scale-100"
+                }`}
+              >
                 {title}
               </h1>
             )}
 
-            {/* Tagline if available */}
-            {media.tagline && (
-              <p className="text-sm md:text-[15px] text-amber-200/90 font-medium italic mb-3.5 max-w-xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-                &ldquo;{media.tagline}&rdquo;
-              </p>
-            )}
-
-            {/* Metadata Line: ★ 6.8 (4.2k) · 2026 · 1h 55m · Family · Fantasy · Comedy */}
-            <div className="flex flex-wrap items-center gap-2 text-xs sm:text-[13.5px] md:text-[14px] text-white/80 font-medium mb-3.5 select-none">
-              {ratingValue > 0 && (
-                <span className="text-white font-bold flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded-full border border-white/10 backdrop-blur-md">
-                  <span className="text-amber-400">★</span>
-                  <span>{ratingFormatted}</span>
-                  {voteCountFormatted && (
-                    <span className="text-white/50 text-[11.5px] font-normal ml-0.5">
-                      ({voteCountFormatted})
-                    </span>
+            {/* Collapsible Info Block: Tagline, Metadata & Overview (Hides when trailer plays and mouse is idle) */}
+            <div
+              className={`grid w-full transition-all duration-700 ease-in-out ${
+                isDetailsCollapsed
+                  ? "grid-rows-[0fr] opacity-0 translate-y-2 pointer-events-none"
+                  : "grid-rows-[1fr] opacity-100 translate-y-0"
+              }`}
+              aria-hidden={isDetailsCollapsed}
+            >
+              <div className="min-h-0 overflow-hidden">
+                <div className="pb-6">
+                  {/* Tagline if available */}
+                  {media.tagline && (
+                    <p className="text-sm md:text-[15px] text-amber-200/90 font-medium italic mb-3.5 max-w-xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+                      &ldquo;{media.tagline}&rdquo;
+                    </p>
                   )}
-                </span>
-              )}
-              {year && (
-                <>
-                  <span className="text-white/40">·</span>
-                  <span>{year}</span>
-                </>
-              )}
-              {runtimeStr && (
-                <>
-                  <span className="text-white/40">·</span>
-                  <span>{runtimeStr}</span>
-                </>
-              )}
-              {media.status && (
-                <>
-                  <span className="text-white/40">·</span>
-                  <span className="text-white/70 uppercase tracking-wider text-[11px] px-2 py-0.5 rounded bg-white/5 border border-white/10 font-semibold">
-                    {media.status}
-                  </span>
-                </>
-              )}
-              {genresList.length > 0 && (
-                <>
-                  <span className="text-white/40">·</span>
-                  <span className="text-white/75">{genresList.join("  ·  ")}</span>
-                </>
-              )}
-            </div>
 
-            {/* Synopsis / Overview */}
-            {media.overview && (
-              <p className="text-[13.5px] sm:text-[14.5px] md:text-[15.5px] text-white/85 leading-relaxed font-normal line-clamp-3 md:line-clamp-4 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] mb-6 max-w-xl md:max-w-2xl">
-                {media.overview}
-              </p>
-            )}
+                  {/* Metadata Line: ★ 6.8 (4.2k) · 2026 · 1h 55m · Family · Fantasy · Comedy */}
+                  <div className="flex flex-wrap items-center gap-2 text-xs sm:text-[13.5px] md:text-[14px] text-white/80 font-medium mb-3.5 select-none">
+                    {ratingValue > 0 && (
+                      <span className="text-white font-bold flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded-full border border-white/10 backdrop-blur-md">
+                        <span className="text-amber-400">★</span>
+                        <span>{ratingFormatted}</span>
+                        {voteCountFormatted && (
+                          <span className="text-white/50 text-[11.5px] font-normal ml-0.5">
+                            ({voteCountFormatted})
+                          </span>
+                        )}
+                      </span>
+                    )}
+                    {year && (
+                      <>
+                        <span className="text-white/40">·</span>
+                        <span>{year}</span>
+                      </>
+                    )}
+                    {runtimeStr && (
+                      <>
+                        <span className="text-white/40">·</span>
+                        <span>{runtimeStr}</span>
+                      </>
+                    )}
+                    {media.status && (
+                      <>
+                        <span className="text-white/40">·</span>
+                        <span className="text-white/70 uppercase tracking-wider text-[11px] px-2 py-0.5 rounded bg-white/5 border border-white/10 font-semibold">
+                          {media.status}
+                        </span>
+                      </>
+                    )}
+                    {genresList.length > 0 && (
+                      <>
+                        <span className="text-white/40">·</span>
+                        <span className="text-white/75">{genresList.join("  ·  ")}</span>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Synopsis / Overview */}
+                  {media.overview && (
+                    <p className="text-[13.5px] sm:text-[14.5px] md:text-[15.5px] text-white/85 leading-relaxed font-normal line-clamp-3 md:line-clamp-4 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] max-w-xl md:max-w-2xl">
+                      {media.overview}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
 
             {/* Action Buttons Row */}
             <div className="flex flex-row items-center gap-2.5 sm:gap-3 w-full sm:w-auto select-none">
