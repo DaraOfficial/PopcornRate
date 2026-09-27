@@ -14,6 +14,15 @@ body {
   text-size-adjust: 100%;
 }
 
+/* Prevent iOS Safari / mobile browsers from auto-zooming page when tapping inputs */
+@media (max-width: 639px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
 /* Hide scrollbar for Chrome, Safari and Opera */
 @layer utilities {
   .hide-scrollbar::-webkit-scrollbar {

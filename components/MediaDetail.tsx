@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { getImageUrl } from "@/lib/tmdb";
 import {
   ChevronLeft,
+  ChevronDown,
   User,
   Play,
   Plus,
@@ -36,9 +37,12 @@ import ScrollableRow from "./ScrollableRow";
 import { setAmbientBackdrop } from "./AmbientBackground";
 import SettingsPanel from "./SettingsPanel";
 import {
+  DEFAULT_SETTINGS,
   EmbedSettings,
   EMBED_SETTINGS_EVENT,
   getEmbedSettings,
+  saveEmbedSettings,
+  getAvailableEmbedPlayers,
   buildEmbedUrl,
 } from "@/lib/embedSettings";
 
@@ -54,11 +58,8 @@ export default function MediaDetail({
   const router = useRouter();
   const [isTrailerOpen, setIsTrailerOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [embedSettings, setEmbedSettings] = useState<EmbedSettings>({
-    enabled: false,
-    movieTemplate: "",
-    tvTemplate: "",
-  });
+  const [isPlayerListOpen, setIsPlayerListOpen] = useState(false);
+  const [embedSettings, setEmbedSettings] = useState<EmbedSettings>(DEFAULT_SETTINGS);
   const [activeEpisode, setActiveEpisode] = useState<{
     season: number;
     episode: number;
@@ -647,12 +648,31 @@ export default function MediaDetail({
     return `$${amount.toLocaleString()}`;
   };
 
-  const customEmbedUrl = buildEmbedUrl(embedSettings, {
+  const availableEmbedPlayers = getAvailableEmbedPlayers(embedSettings, {
     type,
     id: media.id,
     season: activeEpisode.season,
     episode: activeEpisode.episode,
   });
+
+  const activeEmbedPlayer =
+    availableEmbedPlayers.find((p) => p.index === embedSettings.activePlayerIndex) ||
+    availableEmbedPlayers[0] ||
+    null;
+
+  const customEmbedUrl = activeEmbedPlayer ? activeEmbedPlayer.url : null;
+
+  const handleSelectEmbedPlayer = (playerIndex: number) => {
+    const next: EmbedSettings = {
+      ...embedSettings,
+      activePlayerIndex: playerIndex,
+    };
+    setEmbedSettings(next);
+    saveEmbedSettings(next);
+    setIsPlayerListOpen(false);
+    isHoveringEmbedBackRef.current = false;
+    scheduleEmbedControlsHide();
+  };
 
   const handlePlayAction = (episodeOverride?: {
     season: number;
@@ -671,6 +691,7 @@ export default function MediaDetail({
         episode: episodeOverride?.episode ?? activeEpisode.episode,
       });
       if (targetUrl) {
+        setIsPlayerListOpen(false);
         setIsTrailerOpen(true);
       } else {
         setIsSettingsOpen(true);
@@ -1004,8 +1025,8 @@ export default function MediaDetail({
             onPointerMove={wakeEmbedControls}
             onTouchStart={wakeEmbedControls}
           >
-            {/* Invisible wake sensor when controls are hidden so moving mouse over the iframe immediately reveals the back button */}
-            {!showEmbedControls && (
+            {/* Invisible wake sensor when controls are hidden so moving mouse over the iframe immediately reveals the controls */}
+            {!showEmbedControls && !isPlayerListOpen && (
               <div
                 className="absolute inset-0 z-10 bg-transparent"
                 onMouseMove={wakeEmbedControls}
@@ -1015,8 +1036,19 @@ export default function MediaDetail({
               />
             )}
 
-            <button
-              onClick={() => setIsTrailerOpen(false)}
+            {/* Backdrop click catcher when player list dropdown is open */}
+            {isPlayerListOpen && (
+              <div
+                className="absolute inset-0 z-20 bg-transparent"
+                onClick={() => {
+                  setIsPlayerListOpen(false);
+                  isHoveringEmbedBackRef.current = false;
+                  scheduleEmbedControlsHide();
+                }}
+              />
+            )}
+
+            <div
               onMouseEnter={() => {
                 isHoveringEmbedBackRef.current = true;
                 setShowEmbedControls(true);
@@ -1025,19 +1057,92 @@ export default function MediaDetail({
                 }
               }}
               onMouseLeave={() => {
-                isHoveringEmbedBackRef.current = false;
-                scheduleEmbedControlsHide();
+                if (!isPlayerListOpen) {
+                  isHoveringEmbedBackRef.current = false;
+                  scheduleEmbedControlsHide();
+                }
               }}
-              className={`absolute top-5 left-4 sm:top-6 sm:left-6 md:top-8 md:left-8 z-20 ios-btn-circle transition-all duration-300 ${
-                showEmbedControls
+              className={`absolute top-5 left-4 sm:top-6 sm:left-6 md:top-8 md:left-8 z-30 flex items-center gap-2.5 transition-all duration-300 ${
+                showEmbedControls || isPlayerListOpen
                   ? "opacity-100 translate-y-0 pointer-events-auto"
                   : "opacity-0 -translate-y-2 pointer-events-none"
               }`}
-              aria-label="Go back"
-              title="Go back"
             >
-              <ChevronLeft className="w-[22px] h-[22px] mr-0.5" strokeWidth={2.2} />
-            </button>
+              <button
+                onClick={() => {
+                  setIsPlayerListOpen(false);
+                  setIsTrailerOpen(false);
+                }}
+                className="ios-btn-circle"
+                aria-label="Go back"
+                title="Go back"
+              >
+                <ChevronLeft className="w-[22px] h-[22px] mr-0.5" strokeWidth={2.2} />
+              </button>
+
+              {/* Player List Switcher Button & Dropdown */}
+              {availableEmbedPlayers.length > 0 && (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextOpen = !isPlayerListOpen;
+                      setIsPlayerListOpen(nextOpen);
+                      if (nextOpen) {
+                        isHoveringEmbedBackRef.current = true;
+                        setShowEmbedControls(true);
+                        if (embedControlsTimerRef.current) {
+                          clearTimeout(embedControlsTimerRef.current);
+                        }
+                      }
+                    }}
+                    className="ios-btn-glass !h-11 !px-4 !text-xs sm:!text-sm !font-semibold flex items-center gap-2"
+                    aria-label="Switch player"
+                    title="Player list"
+                  >
+                    <Layers className="w-4 h-4 text-amber-300 shrink-0" />
+                    <span>{activeEmbedPlayer?.name || "Player 1"}</span>
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 text-white/75 transition-transform duration-200 ${
+                        isPlayerListOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {isPlayerListOpen && (
+                    <div className="absolute left-0 top-full mt-2 w-44 rounded-2xl bg-white/[0.12] bg-gradient-to-br from-white/[0.22] to-white/[0.07] backdrop-blur-3xl backdrop-saturate-[1.9] border border-white/[0.26] p-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.55),inset_0_1px_1px_0_rgba(255,255,255,0.45)] animate-in fade-in slide-in-from-top-1 duration-150 select-none">
+                      <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/45">
+                        Select Player
+                      </div>
+                      <div className="space-y-1 max-h-56 overflow-y-auto filter-scrollbar">
+                        {availableEmbedPlayers.map((player) => {
+                          const isSelected =
+                            activeEmbedPlayer?.index === player.index;
+                          return (
+                            <button
+                              key={player.id}
+                              type="button"
+                              onClick={() => handleSelectEmbedPlayer(player.index)}
+                              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                                isSelected
+                                  ? "bg-white text-black shadow-sm"
+                                  : "text-white/85 hover:text-white hover:bg-white/10"
+                              }`}
+                            >
+                              <span>{player.name}</span>
+                              {isSelected && (
+                                <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             <iframe
               allowFullScreen
               id="watch-iframe"
