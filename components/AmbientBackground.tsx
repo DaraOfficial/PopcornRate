@@ -46,7 +46,7 @@ function AmbientLayer({
       }`}
     >
       {/* Full-viewport continuous color-blurred wash from top to footer (lightweight w300 for 60fps GPU) */}
-      <div className="absolute -inset-24 scale-125 blur-[90px] sm:blur-[120px] saturate-[1.9] brightness-[0.68] opacity-90 transform-gpu">
+      <div className="absolute -inset-16 sm:-inset-24 scale-125 blur-[60px] sm:blur-[95px] md:blur-[120px] saturate-[1.9] brightness-[0.68] opacity-90 transform-gpu">
         <Image
           src={getImageUrl(path, 'w300')}
           alt=""
@@ -59,7 +59,7 @@ function AmbientLayer({
       </div>
 
       {/* Upper & mid-section vibrant color bridge directly beneath Hero Slider */}
-      <div className="absolute inset-x-0 -top-12 h-[70vh] scale-115 blur-[80px] sm:blur-[105px] saturate-[2.05] brightness-[0.72] opacity-75 transform-gpu">
+      <div className="absolute inset-x-0 -top-12 h-[70%] scale-115 blur-[55px] sm:blur-[85px] md:blur-[105px] saturate-[2.05] brightness-[0.72] opacity-75 transform-gpu">
         <Image
           src={getImageUrl(path, 'w300')}
           alt=""
@@ -72,7 +72,7 @@ function AmbientLayer({
       </div>
 
       {/* Lower-body & footer ambient color continuation so the whole page feels like one unified canvas */}
-      <div className="absolute inset-x-0 -bottom-16 h-[70vh] scale-125 blur-[95px] sm:blur-[120px] saturate-[1.95] brightness-[0.66] opacity-80 transform-gpu">
+      <div className="absolute inset-x-0 -bottom-16 h-[70%] scale-125 blur-[60px] sm:blur-[95px] md:blur-[120px] saturate-[1.95] brightness-[0.66] opacity-80 transform-gpu">
         <Image
           src={getImageUrl(path, 'w300')}
           alt=""
@@ -129,7 +129,7 @@ export default function AmbientBackground() {
 
   return (
     <div
-      className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-[#0c0d14]"
+      className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-[#0c0d14] [contain:strict]"
       aria-hidden="true"
     >
       {/* Default ambient color gradient before media loads */}

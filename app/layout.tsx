@@ -13,18 +13,17 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
-    <html lang="en" className="dark">
-      <body className="font-sans min-h-screen bg-[#07070b] text-white selection:bg-white/20 selection:text-white antialiased flex flex-col relative overflow-x-hidden" suppressHydrationWarning>
+    <html lang="en" className="dark w-full overflow-x-hidden">
+      <body className="font-sans min-h-screen w-full max-w-full bg-[#07070b] text-white selection:bg-white/20 selection:text-white antialiased flex flex-col relative overflow-x-hidden" suppressHydrationWarning>
         <AmbientBackground />
         <Navbar />
         
-        <div className="flex-1 relative z-10">
+        <div className="flex-1 relative z-10 w-full min-w-0 max-w-full">
           {children}
         </div>
 

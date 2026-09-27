@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Play, Info } from 'lucide-react';
@@ -13,34 +13,16 @@ const GENRE_MAP: Record<number, string> = {
   10759: 'Action & Adventure', 10762: 'Kids', 10763: 'News', 10764: 'Reality', 10765: 'Sci-Fi & Fantasy', 10766: 'Soap', 10767: 'Talk', 10768: 'War & Politics'
 };
 
-const SLIDE_DURATION_MS = 7000;
+const SLIDE_DURATION_MS = 7000; // 7 seconds per slide
 
 export default function HeroSlider({ items }: { items: any[] }) {
-  const displayItems = (items || []).slice(0, 5);
+  const displayItems = (items || []).slice(0, 10); // 10 slides in Hero Slider
   const slideCount = displayItems.length;
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isHoveringControls, setIsHoveringControls] = useState(false);
-  const [isInView, setIsInView] = useState(true);
-  const [isTabHidden, setIsTabHidden] = useState(false);
-
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const remainingMsRef = useRef<number>(SLIDE_DURATION_MS);
-  const startTimeRef = useRef<number>(0);
-
-  const isPaused = isHoveringControls || !isInView || isTabHidden;
-
-  const advanceSlide = useCallback(() => {
-    if (slideCount <= 1) return;
-    remainingMsRef.current = SLIDE_DURATION_MS;
-    setCurrentIndex((current) => (current + 1) % slideCount);
-  }, [slideCount]);
 
   const goToSlide = (index: number) => {
     if (index === currentIndex) return;
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    remainingMsRef.current = SLIDE_DURATION_MS;
     setCurrentIndex(index);
   };
 
@@ -52,82 +34,25 @@ export default function HeroSlider({ items }: { items: any[] }) {
     }
   }, [currentIndex, displayItems]);
 
-  // Reset remaining timer duration when currentIndex changes
-  useEffect(() => {
-    remainingMsRef.current = SLIDE_DURATION_MS;
-  }, [currentIndex]);
-
-  // Pause slider timer & GPU animations when scrolled out of viewport
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el || typeof IntersectionObserver === 'undefined') return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsInView(entry.isIntersecting);
-      },
-      { threshold: 0.15 }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  // Pause slider timer when browser tab is in background
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      setIsTabHidden(document.hidden);
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
-
-  // Precision remaining-time scheduler (stays 100% synced with CSS progress bar on pause/resume)
+  // Simple 7-second slide rotation timer
   useEffect(() => {
     if (slideCount <= 1) return;
 
-    if (isPaused) {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
-      if (startTimeRef.current > 0) {
-        const elapsed = performance.now() - startTimeRef.current;
-        remainingMsRef.current = Math.max(200, remainingMsRef.current - elapsed);
-        startTimeRef.current = 0;
-      }
-      return;
-    }
+    const timer = setTimeout(() => {
+      setCurrentIndex((current) => (current + 1) % slideCount);
+    }, SLIDE_DURATION_MS);
 
-    startTimeRef.current = performance.now();
-    timeoutRef.current = setTimeout(() => {
-      startTimeRef.current = 0;
-      advanceSlide();
-    }, remainingMsRef.current);
-
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
-    };
-  }, [currentIndex, isPaused, slideCount, advanceSlide]);
+    return () => clearTimeout(timer);
+  }, [currentIndex, slideCount]);
 
   if (slideCount === 0) return null;
 
   return (
-    <div
-      ref={containerRef}
-      className="relative w-full overflow-hidden bg-transparent h-[75vh] min-h-[500px] md:h-[92vh] xl:h-[96vh] md:min-h-[600px] group"
-    >
+    <div className="relative w-full overflow-hidden bg-transparent h-[75vh] min-h-[500px] md:h-[92vh] xl:h-[96vh] md:min-h-[600px] group">
       <style>{`
         @keyframes sliderProgress {
           0% { transform: scaleX(0); }
           100% { transform: scaleX(1); }
-        }
-        @keyframes kenBurns {
-          0% { transform: scale(1) translateZ(0); }
-          100% { transform: scale(1.045) translateZ(0); }
         }
       `}</style>
 
@@ -170,28 +95,17 @@ export default function HeroSlider({ items }: { items: any[] }) {
           >
             {/* Masked Hero Backdrop Layer: dissolves smoothly into the unified blurred body background behind it */}
             <div className="absolute inset-0 w-full h-full pointer-events-none [mask-image:linear-gradient(to_bottom,black_0%,black_52%,rgba(0,0,0,0.72)_72%,rgba(0,0,0,0.25)_88%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_52%,rgba(0,0,0,0.72)_72%,rgba(0,0,0,0.25)_88%,transparent_100%)]">
-              <div
-                className="absolute inset-0 w-full h-full will-change-transform"
-                style={{
-                  animationName: isActive ? 'kenBurns' : 'none',
-                  animationDuration: '9s',
-                  animationTimingFunction: 'ease-out',
-                  animationFillMode: 'forwards',
-                  animationPlayState: isPaused ? 'paused' : 'running',
-                }}
-              >
-                {shouldRenderImage && (
-                  <Image
-                    src={getImageUrl(item.backdrop_path, 'original')}
-                    alt={title}
-                    fill
-                    sizes="100vw"
-                    className="object-cover"
-                    referrerPolicy="no-referrer"
-                    priority={index === 0}
-                  />
-                )}
-              </div>
+              {shouldRenderImage && (
+                <Image
+                  src={getImageUrl(item.backdrop_path, 'original')}
+                  alt={title}
+                  fill
+                  sizes="100vw"
+                  className="object-cover"
+                  referrerPolicy="no-referrer"
+                  priority={index === 0}
+                />
+              )}
 
               {/* Top gradient for fixed navbar legibility */}
               <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/45 to-transparent" />
@@ -245,12 +159,8 @@ export default function HeroSlider({ items }: { items: any[] }) {
                   {overview}
                 </p>
 
-                {/* Actions (Pause slider timer only while user hovers interactive CTAs) */}
-                <div
-                  className="flex flex-row items-center gap-2.5 sm:gap-3 select-none w-full sm:w-auto"
-                  onMouseEnter={() => setIsHoveringControls(true)}
-                  onMouseLeave={() => setIsHoveringControls(false)}
-                >
+                {/* Actions */}
+                <div className="flex flex-row items-center gap-2.5 sm:gap-3 select-none w-full sm:w-auto">
                   <Link
                     href={`/${type}/${item.id}`}
                     className="ios-btn-primary flex-1 sm:flex-none"
@@ -273,11 +183,7 @@ export default function HeroSlider({ items }: { items: any[] }) {
       })}
 
       {/* Modern Animated Pagination Indicators (Apple TV / Netflix style) */}
-      <div
-        className="absolute bottom-6 md:bottom-10 right-4 sm:right-6 md:right-10 lg:right-[max(3rem,calc((100vw-1440px)/2+48px))] z-20 flex justify-end gap-2.5 pointer-events-auto"
-        onMouseEnter={() => setIsHoveringControls(true)}
-        onMouseLeave={() => setIsHoveringControls(false)}
-      >
+      <div className="absolute bottom-6 md:bottom-10 right-4 sm:right-6 md:right-10 lg:right-[max(3rem,calc((100vw-1440px)/2+48px))] z-20 flex justify-end items-center gap-1.5 sm:gap-2 md:gap-2.5 pointer-events-auto">
         {displayItems.map((_, index) => {
           const isActive = index === currentIndex;
           return (
@@ -285,7 +191,7 @@ export default function HeroSlider({ items }: { items: any[] }) {
               key={index}
               onClick={() => goToSlide(index)}
               className={`relative overflow-hidden transition-all duration-500 rounded-full h-1.5 md:h-2 cursor-pointer bg-white/20 hover:bg-white/40 backdrop-blur-md ${
-                isActive ? 'w-10 sm:w-12 md:w-16' : 'w-2 md:w-2.5'
+                isActive ? 'w-8 sm:w-11 md:w-14' : 'w-1.5 sm:w-2 md:w-2.5'
               }`}
               aria-label={`Go to slide ${index + 1}`}
             >
@@ -298,7 +204,6 @@ export default function HeroSlider({ items }: { items: any[] }) {
                     animationDuration: `${SLIDE_DURATION_MS}ms`,
                     animationTimingFunction: 'linear',
                     animationFillMode: 'forwards',
-                    animationPlayState: isPaused ? 'paused' : 'running',
                   }}
                 />
               )}

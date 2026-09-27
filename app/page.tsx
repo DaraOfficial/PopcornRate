@@ -63,9 +63,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ q
         errorMsg = firstErr instanceof TMDBError ? firstErr.message : "Failed to fetch media from TMDB.";
       }
 
-      // Fetch logos for top 5 nowPlaying items for the Hero Slider
-      const top5NowPlaying = nowPlaying.filter((m: any) => m.backdrop_path).slice(0, 5);
-      await Promise.all(top5NowPlaying.map(async (item: any) => {
+      // Fetch logos for top 10 nowPlaying items for the Hero Slider
+      const top10NowPlaying = nowPlaying.filter((m: any) => m.backdrop_path).slice(0, 10);
+      await Promise.all(top10NowPlaying.map(async (item: any) => {
         try {
           const type = item.media_type || (item.name ? 'tv' : 'movie');
           const images = await getMediaImages(item.id, type);

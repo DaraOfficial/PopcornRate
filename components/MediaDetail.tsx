@@ -208,13 +208,39 @@ export default function MediaDetail({
     return () => observer.disconnect();
   }, [shouldMountHeroTrailer, isHeroTrailerEnded, isTrailerOpen]);
 
-  // Hide hero details & drop title logo above buttons after trailer plays if user is not moving the mouse
+  // Keep viewport & horizontal scroll locked cleanly when rotating mobile screens
+  useEffect(() => {
+    const handleOrientationOrResize = () => {
+      setIsUserIdle(false);
+      if (window.scrollX !== 0) {
+        window.scrollTo({ left: 0, behavior: "instant" as ScrollBehavior });
+      }
+    };
+
+    window.addEventListener("orientationchange", handleOrientationOrResize, { passive: true });
+    window.addEventListener("resize", handleOrientationOrResize, { passive: true });
+    return () => {
+      window.removeEventListener("orientationchange", handleOrientationOrResize);
+      window.removeEventListener("resize", handleOrientationOrResize);
+    };
+  }, []);
+
+  // Hide hero details & drop title logo above buttons after trailer plays if desktop user is not moving the mouse
   useEffect(() => {
     if (!isHeroTrailerPlaying || isHeroTrailerEnded || isTrailerOpen) {
       setIsUserIdle(false);
       if (idleTimerRef.current) {
         clearTimeout(idleTimerRef.current);
       }
+      return;
+    }
+
+    // Only auto-collapse hero text on desktop devices with a fine mouse pointer so mobile touch scrolling/rotation never shifts layout height
+    const canHover =
+      typeof window !== "undefined" &&
+      window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    if (!canHover) {
+      setIsUserIdle(false);
       return;
     }
 
@@ -236,7 +262,6 @@ export default function MediaDetail({
 
     window.addEventListener("mousemove", handleUserActivity, { passive: true });
     window.addEventListener("mousedown", handleUserActivity, { passive: true });
-    window.addEventListener("touchstart", handleUserActivity, { passive: true });
     window.addEventListener("keydown", handleUserActivity, { passive: true });
 
     return () => {
@@ -245,7 +270,6 @@ export default function MediaDetail({
       }
       window.removeEventListener("mousemove", handleUserActivity);
       window.removeEventListener("mousedown", handleUserActivity);
-      window.removeEventListener("touchstart", handleUserActivity);
       window.removeEventListener("keydown", handleUserActivity);
     };
   }, [isHeroTrailerPlaying, isHeroTrailerEnded, isTrailerOpen]);
@@ -500,9 +524,9 @@ export default function MediaDetail({
   };
 
   return (
-    <main className="relative min-h-screen bg-transparent text-white selection:bg-white/30 pb-24 font-sans">
+    <main className="relative w-full max-w-full min-h-screen bg-transparent text-white selection:bg-white/30 pb-24 font-sans overflow-x-clip">
       {/* Top Floating Action Bar */}
-      <div className="absolute top-6 left-6 right-6 md:top-8 md:left-8 md:right-8 z-50 flex items-center justify-between pointer-events-none">
+      <div className="absolute top-5 left-4 right-4 sm:top-6 sm:left-6 sm:right-6 md:top-8 md:left-8 md:right-8 z-50 flex items-center justify-between pointer-events-none">
         {/* Navigation Back Button */}
         <button
           onClick={handleBack}
@@ -546,22 +570,23 @@ export default function MediaDetail({
       {/* Hero Section */}
       <div
         ref={heroSectionRef}
-        className="relative z-10 w-full min-h-[75vh] md:min-h-[85vh] lg:min-h-[88vh] flex flex-col justify-end overflow-hidden"
+        className="relative z-10 w-full min-h-[70svh] sm:min-h-[76svh] md:min-h-[85svh] lg:min-h-[88svh] flex flex-col justify-end overflow-hidden"
       >
-        {/* Hero Media Layer (Backdrop + Trailer) — sits above the global blurred AmbientBackground and dissolves smoothly with the multi-stop gradient */}
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none [mask-image:linear-gradient(to_bottom,black_0%,black_52%,rgba(0,0,0,0.72)_74%,rgba(0,0,0,0.25)_90%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_52%,rgba(0,0,0,0.72)_74%,rgba(0,0,0,0.25)_90%,transparent_100%)]">
+        {/* Hero Media Layer (Backdrop + Trailer) — strict CSS containment isolates oversized media from viewport scaling during mobile rotation */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none [contain:strict] [mask-image:linear-gradient(to_bottom,black_0%,black_52%,rgba(0,0,0,0.72)_74%,rgba(0,0,0,0.25)_90%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_52%,rgba(0,0,0,0.72)_74%,rgba(0,0,0,0.25)_90%,transparent_100%)]">
           {/* Full-bleed Cinematic Backdrop Image (Behind Trailer, fades out cleanly once trailer plays) */}
           {media.backdrop_path ? (
             <div
-              className={`absolute inset-0 z-[1] transition-opacity duration-1000 ease-out ${
+              className={`absolute inset-0 z-[1] transition-opacity duration-1000 ease-out will-change-[opacity] ${
                 isHeroTrailerPlaying && !isHeroTrailerEnded ? "opacity-0" : "opacity-100"
               }`}
             >
               <Image
-                src={getImageUrl(media.backdrop_path, "original")}
+                src={getImageUrl(media.backdrop_path, "w1280")}
                 alt={title}
                 fill
                 sizes="100vw"
+                referrerPolicy="no-referrer"
                 className="object-cover object-center md:object-top"
                 priority
               />
@@ -576,7 +601,7 @@ export default function MediaDetail({
           {/* Netflix-Style Auto-Playing Hero Background Trailer (Strictly above backdrop & blurred ambient background) */}
           {shouldMountHeroTrailer && trailerKey && (
             <div
-              className={`absolute inset-0 z-[2] overflow-hidden pointer-events-none transition-opacity duration-1000 ease-out ${
+              className={`absolute inset-0 z-[2] overflow-hidden pointer-events-none transition-opacity duration-1000 ease-out will-change-[opacity] ${
                 isHeroTrailerPlaying && !isHeroTrailerEnded ? "opacity-100" : "opacity-0"
               }`}
               aria-hidden="true"
@@ -588,7 +613,7 @@ export default function MediaDetail({
                   src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&iv_load_policy=3&disablekb=1&fs=0`}
                   title={`${title} Hero Trailer`}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[210vw] sm:w-[177.78vh] min-w-full min-h-full sm:min-h-[56.25vw] aspect-video pointer-events-none scale-[1.18] sm:scale-[1.22] border-0"
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[max(100%,177.78svh)] h-[max(100%,56.25vw)] aspect-video pointer-events-none scale-[1.16] border-0 transform-gpu"
                   tabIndex={-1}
                 />
               </div>
@@ -604,28 +629,30 @@ export default function MediaDetail({
         </div>
 
         {/* Hero Content (Positioned at Lower-Left) */}
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1440px] pb-12 md:pb-16 pt-32">
-          <div className="max-w-xl md:max-w-2xl flex flex-col items-start">
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1440px] w-full min-w-0 pb-8 sm:pb-12 md:pb-16 pt-24 sm:pt-28 md:pt-32">
+          <div className="max-w-xl md:max-w-2xl w-full min-w-0 flex flex-col items-start">
             {/* Title / Movie Logo */}
             {logo?.file_path ? (
               <div
-                className={`relative h-16 sm:h-24 md:h-28 lg:h-32 w-56 sm:w-80 md:w-96 origin-bottom-left transition-all duration-700 ease-in-out ${
+                className={`relative h-16 sm:h-24 md:h-28 lg:h-32 w-56 sm:w-80 md:w-96 max-w-full origin-bottom-left transition-transform duration-500 ease-out ${
                   isDetailsCollapsed
                     ? "mb-3.5 sm:mb-4 scale-90 sm:scale-[0.88]"
                     : "mb-4 sm:mb-5 scale-100"
                 }`}
               >
                 <Image
-                  src={getImageUrl(logo.file_path, "original")}
+                  src={getImageUrl(logo.file_path, "w500")}
                   alt={title}
                   fill
+                  sizes="(max-width: 640px) 224px, (max-width: 768px) 320px, 384px"
+                  referrerPolicy="no-referrer"
                   className="object-contain object-left-bottom drop-shadow-[0_8px_24px_rgba(0,0,0,0.85)]"
                   priority
                 />
               </div>
             ) : (
               <h1
-                className={`text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-tight drop-shadow-[0_8px_30px_rgba(0,0,0,0.9)] origin-bottom-left transition-all duration-700 ease-in-out ${
+                className={`text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-tight drop-shadow-[0_8px_30px_rgba(0,0,0,0.9)] origin-bottom-left transition-transform duration-500 ease-out ${
                   isDetailsCollapsed
                     ? "mb-3.5 sm:mb-4 scale-90 sm:scale-[0.88]"
                     : "mb-4 scale-100"
@@ -637,7 +664,7 @@ export default function MediaDetail({
 
             {/* Collapsible Info Block: Tagline, Metadata & Overview (Hides when trailer plays and mouse is idle) */}
             <div
-              className={`grid w-full transition-all duration-700 ease-in-out ${
+              className={`grid w-full transition-[grid-template-rows,opacity,transform] duration-500 ease-out ${
                 isDetailsCollapsed
                   ? "grid-rows-[0fr] opacity-0 translate-y-2 pointer-events-none"
                   : "grid-rows-[1fr] opacity-100 translate-y-0"
@@ -820,10 +847,10 @@ export default function MediaDetail({
       )}
 
       {/* Main Content Details */}
-      <div className="container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1440px] mt-10 md:mt-14">
+      <div className="container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1440px] w-full min-w-0 mt-10 md:mt-14">
         {/* Where to Watch / Streaming Options Card */}
         {(streamProviders.length > 0 || rentProviders.length > 0 || buyProviders.length > 0) && (
-          <div className="mb-14 p-5 sm:p-6 rounded-3xl bg-white/[0.06] bg-gradient-to-br from-white/[0.12] to-white/[0.03] border border-white/[0.2] backdrop-blur-2xl backdrop-saturate-[1.8] shadow-[0_12px_36px_rgba(0,0,0,0.28),inset_0_1px_1px_0_rgba(255,255,255,0.3)]">
+          <div className="mb-14 p-5 sm:p-6 rounded-3xl bg-white/[0.07] bg-gradient-to-br from-white/[0.12] to-white/[0.03] border border-white/[0.2] md:backdrop-blur-2xl md:backdrop-saturate-[1.8] shadow-[0_12px_36px_rgba(0,0,0,0.28),inset_0_1px_1px_0_rgba(255,255,255,0.3)]">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-full bg-amber-400/15 border border-amber-400/25 flex items-center justify-center text-amber-400">
@@ -840,7 +867,7 @@ export default function MediaDetail({
                   href={justWatchLink}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="inline-flex items-center gap-1.5 text-xs text-white/80 hover:text-white transition-all bg-white/[0.08] hover:bg-white/[0.15] bg-gradient-to-br from-white/[0.18] to-white/[0.05] backdrop-blur-xl backdrop-saturate-[1.9] border border-white/25 hover:border-white/40 shadow-[0_4px_16px_rgba(0,0,0,0.2),inset_0_1px_1px_0_rgba(255,255,255,0.4)] px-4 py-2 rounded-full self-start sm:self-auto"
+                  className="inline-flex items-center gap-1.5 text-xs text-white/80 hover:text-white transition-colors bg-white/[0.08] hover:bg-white/[0.15] bg-gradient-to-br from-white/[0.18] to-white/[0.05] md:backdrop-blur-xl md:backdrop-saturate-[1.9] border border-white/25 hover:border-white/40 shadow-[0_4px_16px_rgba(0,0,0,0.2),inset_0_1px_1px_0_rgba(255,255,255,0.4)] px-4 py-2 rounded-full self-start sm:self-auto"
                 >
                   <span>Powered by JustWatch</span>
                   <ExternalLink className="w-3 h-3 text-white/60" />
@@ -860,7 +887,7 @@ export default function MediaDetail({
                     {streamProviders.map((prov: any) => (
                       <div
                         key={prov.provider_id}
-                        className="flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 px-3 py-1.5 rounded-2xl transition-all"
+                        className="flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 px-3 py-1.5 rounded-2xl transition-colors"
                         title={prov.provider_name}
                       >
                         {prov.logo_path && (
@@ -869,6 +896,8 @@ export default function MediaDetail({
                               src={getImageUrl(prov.logo_path, "w500")}
                               alt={prov.provider_name}
                               fill
+                              sizes="48px"
+                              referrerPolicy="no-referrer"
                               className="object-cover"
                             />
                           </div>
@@ -891,7 +920,7 @@ export default function MediaDetail({
                     {rentProviders.slice(0, 6).map((prov: any) => (
                       <div
                         key={prov.provider_id}
-                        className="flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 px-3 py-1.5 rounded-2xl transition-all"
+                        className="flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 px-3 py-1.5 rounded-2xl transition-colors"
                         title={prov.provider_name}
                       >
                         {prov.logo_path && (
@@ -900,6 +929,8 @@ export default function MediaDetail({
                               src={getImageUrl(prov.logo_path, "w500")}
                               alt={prov.provider_name}
                               fill
+                              sizes="48px"
+                              referrerPolicy="no-referrer"
                               className="object-cover"
                             />
                           </div>
@@ -922,7 +953,7 @@ export default function MediaDetail({
                     {buyProviders.slice(0, 6).map((prov: any) => (
                       <div
                         key={prov.provider_id}
-                        className="flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 px-3 py-1.5 rounded-2xl transition-all"
+                        className="flex items-center gap-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/10 px-3 py-1.5 rounded-2xl transition-colors"
                         title={prov.provider_name}
                       >
                         {prov.logo_path && (
@@ -931,6 +962,8 @@ export default function MediaDetail({
                               src={getImageUrl(prov.logo_path, "w500")}
                               alt={prov.provider_name}
                               fill
+                              sizes="48px"
+                              referrerPolicy="no-referrer"
                               className="object-cover"
                             />
                           </div>
@@ -976,7 +1009,7 @@ export default function MediaDetail({
               {cast.map((person: any) => (
                 <div
                   key={person.id}
-                  className="w-[120px] min-[390px]:w-[132px] sm:w-[145px] md:w-[156px] lg:w-[166px] shrink-0 snap-start rounded-xl sm:rounded-2xl overflow-hidden bg-white/[0.06] bg-gradient-to-br from-white/[0.12] to-white/[0.03] backdrop-blur-2xl backdrop-saturate-[1.8] border border-white/[0.18] shadow-[0_8px_24px_rgba(0,0,0,0.25),inset_0_1px_1px_0_rgba(255,255,255,0.25)] flex flex-col select-none"
+                  className="w-[120px] min-[390px]:w-[132px] sm:w-[145px] md:w-[156px] lg:w-[166px] shrink-0 snap-start rounded-xl sm:rounded-2xl overflow-hidden bg-white/[0.07] bg-gradient-to-br from-white/[0.12] to-white/[0.03] md:backdrop-blur-2xl md:backdrop-saturate-[1.8] border border-white/[0.18] shadow-[0_8px_24px_rgba(0,0,0,0.25),inset_0_1px_1px_0_rgba(255,255,255,0.25)] flex flex-col select-none"
                 >
                   <div className="relative w-full aspect-[2/3] bg-white/5">
                     {person.profile_path ? (
@@ -984,6 +1017,8 @@ export default function MediaDetail({
                         src={getImageUrl(person.profile_path, "w500")}
                         alt={person.name}
                         fill
+                        sizes="(max-width: 640px) 132px, 166px"
+                        referrerPolicy="no-referrer"
                         className="object-cover"
                       />
                     ) : (
@@ -1007,7 +1042,7 @@ export default function MediaDetail({
         )}
 
         {/* Media Details & Specifications Grid */}
-        <section className="mb-16 md:mb-20 p-6 md:p-8 rounded-3xl bg-white/[0.06] bg-gradient-to-br from-white/[0.12] to-white/[0.03] border border-white/[0.18] backdrop-blur-2xl backdrop-saturate-[1.8] shadow-[0_12px_36px_rgba(0,0,0,0.25),inset_0_1px_1px_0_rgba(255,255,255,0.28)]">
+        <section className="mb-16 md:mb-20 p-6 md:p-8 rounded-3xl bg-white/[0.07] bg-gradient-to-br from-white/[0.12] to-white/[0.03] border border-white/[0.18] md:backdrop-blur-2xl md:backdrop-saturate-[1.8] shadow-[0_12px_36px_rgba(0,0,0,0.25),inset_0_1px_1px_0_rgba(255,255,255,0.28)]">
           <h2 className="text-lg md:text-xl font-bold text-white mb-6 flex items-center gap-2.5">
             <Layers className="w-5 h-5 text-amber-400" />
             <span>Story &amp; Production Details</span>
@@ -1079,7 +1114,7 @@ export default function MediaDetail({
                 return (
                   <div
                     key={rev.id}
-                    className="p-5 md:p-6 rounded-2xl bg-white/[0.06] bg-gradient-to-br from-white/[0.12] to-white/[0.03] border border-white/[0.18] backdrop-blur-2xl backdrop-saturate-[1.8] shadow-[0_8px_28px_rgba(0,0,0,0.25),inset_0_1px_1px_0_rgba(255,255,255,0.28)] flex flex-col justify-between"
+                    className="p-5 md:p-6 rounded-2xl bg-white/[0.07] bg-gradient-to-br from-white/[0.12] to-white/[0.03] border border-white/[0.18] md:backdrop-blur-2xl md:backdrop-saturate-[1.8] shadow-[0_8px_28px_rgba(0,0,0,0.25),inset_0_1px_1px_0_rgba(255,255,255,0.28)] flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-3.5">

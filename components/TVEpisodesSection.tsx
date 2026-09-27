@@ -207,7 +207,7 @@ export default function TVEpisodesSection({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search episode..."
-            className="w-full h-11 bg-white/[0.08] hover:bg-white/[0.14] focus:bg-white/[0.16] bg-gradient-to-br from-white/[0.18] to-white/[0.05] backdrop-blur-2xl backdrop-saturate-[1.9] border border-white/[0.25] hover:border-white/[0.38] focus:border-white/50 rounded-full pl-11 pr-10 text-[15px] text-white placeholder-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.25),inset_0_1px_1px_0_rgba(255,255,255,0.45)] focus:outline-none transition-all duration-200"
+            className="w-full h-11 bg-white/[0.08] hover:bg-white/[0.14] focus:bg-white/[0.16] bg-gradient-to-br from-white/[0.18] to-white/[0.05] md:backdrop-blur-2xl md:backdrop-saturate-[1.9] border border-white/[0.25] hover:border-white/[0.38] focus:border-white/50 rounded-full pl-11 pr-10 text-base sm:text-[15px] text-white placeholder-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.25),inset_0_1px_1px_0_rgba(255,255,255,0.45)] focus:outline-none transition-colors duration-200"
           />
           {searchQuery && (
             <button
@@ -269,7 +269,7 @@ export default function TVEpisodesSection({
                 <div
                   key={epId}
                   onClick={() => onPlayEpisode && onPlayEpisode(episode)}
-                  className="group relative bg-white/[0.06] hover:bg-white/[0.11] bg-gradient-to-br from-white/[0.12] to-white/[0.03] backdrop-blur-2xl backdrop-saturate-[1.8] border border-white/[0.18] hover:border-white/[0.32] rounded-2xl md:rounded-3xl p-3.5 sm:p-4 md:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 transition-all duration-200 cursor-pointer shadow-[0_8px_32px_rgba(0,0,0,0.28),inset_0_1px_1px_0_rgba(255,255,255,0.3)]"
+                  className="group relative bg-white/[0.07] hover:bg-white/[0.11] bg-gradient-to-br from-white/[0.12] to-white/[0.03] md:backdrop-blur-2xl md:backdrop-saturate-[1.8] border border-white/[0.18] hover:border-white/[0.32] rounded-2xl md:rounded-3xl p-3.5 sm:p-4 md:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 transition-colors duration-200 cursor-pointer shadow-[0_8px_32px_rgba(0,0,0,0.28),inset_0_1px_1px_0_rgba(255,255,255,0.3)]"
                 >
                   {/* Left: 16:9 Thumbnail with bottom-left episode number badge */}
                   <div className="aspect-video w-full sm:w-44 md:w-56 lg:w-60 shrink-0 rounded-xl md:rounded-2xl overflow-hidden relative bg-black/40 shadow-inner">
@@ -278,6 +278,8 @@ export default function TVEpisodesSection({
                         src={getImageUrl(episode.still_path, 'w500')}
                         alt={epName}
                         fill
+                        sizes="(max-width: 640px) 100vw, 240px"
+                        referrerPolicy="no-referrer"
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                     ) : (
@@ -288,13 +290,13 @@ export default function TVEpisodesSection({
 
                     {/* Play icon on hover */}
                     <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <div className="w-11 h-11 rounded-full bg-white/[0.2] bg-gradient-to-br from-white/[0.35] to-white/[0.1] backdrop-blur-xl backdrop-saturate-[1.9] border border-white/40 text-white flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.6)] transform scale-90 group-hover:scale-100 transition-transform">
+                      <div className="w-11 h-11 rounded-full bg-white/[0.2] bg-gradient-to-br from-white/[0.35] to-white/[0.1] md:backdrop-blur-xl md:backdrop-saturate-[1.9] border border-white/40 text-white flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.6)] transform scale-90 group-hover:scale-100 transition-transform">
                         <Play className="w-4 h-4 fill-current ml-0.5" />
                       </div>
                     </div>
 
                     {/* Bottom-left Episode Number Badge */}
-                    <div className="absolute bottom-2.5 left-2.5 bg-white/[0.14] bg-gradient-to-br from-white/[0.24] to-white/[0.06] backdrop-blur-xl backdrop-saturate-[1.8] px-2.5 py-0.5 rounded-lg text-[11px] font-bold text-white shadow ring-1 ring-white/25 select-none">
+                    <div className="absolute bottom-2.5 left-2.5 bg-black/55 bg-gradient-to-br from-white/[0.24] to-white/[0.06] md:backdrop-blur-xl md:backdrop-saturate-[1.8] px-2.5 py-0.5 rounded-lg text-[11px] font-bold text-white shadow ring-1 ring-white/25 select-none">
                       {episode.episode_number}
                     </div>
                   </div>

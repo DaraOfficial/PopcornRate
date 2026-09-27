@@ -23,8 +23,20 @@ export default function ScrollableRow({
 
   useEffect(() => {
     checkScroll();
-    window.addEventListener('resize', checkScroll);
-    return () => window.removeEventListener('resize', checkScroll);
+    let rafId: number | null = null;
+    const handleResize = () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        checkScroll();
+      });
+    };
+    window.addEventListener('resize', handleResize, { passive: true });
+    window.addEventListener('orientationchange', handleResize, { passive: true });
+    return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
   }, [children]);
 
   const scroll = (direction: 'left' | 'right') => {
@@ -39,7 +51,7 @@ export default function ScrollableRow({
     <div className="relative group/row">
       {/* Left Arrow */}
       <div
-        className={`absolute left-2 top-2 bottom-8 z-40 transition-all duration-300 hidden md:flex items-center justify-center ${
+        className={`absolute left-1 top-2 bottom-8 z-40 transition-all duration-300 hidden md:flex items-center justify-center ${
           showLeft
             ? 'opacity-0 group-hover/row:opacity-100 pointer-events-auto'
             : 'opacity-0 pointer-events-none'
@@ -47,11 +59,11 @@ export default function ScrollableRow({
       >
         <button
           onClick={() => scroll('left')}
-          className="ios-btn-circle w-11 h-11 md:w-12 md:h-12 hover:scale-105 active:scale-95"
+          className="group/arrow p-2 flex items-center justify-center text-white/80 hover:text-white active:scale-90 transition-all duration-200 cursor-pointer focus:outline-none select-none"
           aria-label="Scroll left"
         >
           <ChevronLeft
-            className="w-6 h-6 text-white pr-0.5"
+            className="w-9 h-9 md:w-11 md:h-11 transition-transform duration-200 transform group-hover/arrow:scale-125 group-hover/arrow:-translate-x-0.5 drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]"
             strokeWidth={2.5}
           />
         </button>
@@ -68,7 +80,7 @@ export default function ScrollableRow({
 
       {/* Right Arrow */}
       <div
-        className={`absolute right-2 top-2 bottom-8 z-40 transition-all duration-300 hidden md:flex items-center justify-center ${
+        className={`absolute right-1 top-2 bottom-8 z-40 transition-all duration-300 hidden md:flex items-center justify-center ${
           showRight
             ? 'opacity-0 group-hover/row:opacity-100 pointer-events-auto'
             : 'opacity-0 pointer-events-none'
@@ -76,11 +88,11 @@ export default function ScrollableRow({
       >
         <button
           onClick={() => scroll('right')}
-          className="ios-btn-circle w-11 h-11 md:w-12 md:h-12 hover:scale-105 active:scale-95"
+          className="group/arrow p-2 flex items-center justify-center text-white/80 hover:text-white active:scale-90 transition-all duration-200 cursor-pointer focus:outline-none select-none"
           aria-label="Scroll right"
         >
           <ChevronRight
-            className="w-6 h-6 text-white pl-0.5"
+            className="w-9 h-9 md:w-11 md:h-11 transition-transform duration-200 transform group-hover/arrow:scale-125 group-hover/arrow:translate-x-0.5 drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]"
             strokeWidth={2.5}
           />
         </button>
