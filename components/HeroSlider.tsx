@@ -16,7 +16,7 @@ const GENRE_MAP: Record<number, string> = {
 const SLIDE_DURATION_MS = 7000; // 7 seconds per slide
 
 export default function HeroSlider({ items }: { items: any[] }) {
-  const displayItems = (items || []).slice(0, 10); // 10 slides in Hero Slider
+  const displayItems = (items || []).slice(0, 7); // 7 slides in Hero Slider
   const slideCount = displayItems.length;
 
   const [currentIndex, setCurrentIndex] = useState(0);

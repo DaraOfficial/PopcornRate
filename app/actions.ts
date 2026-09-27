@@ -22,7 +22,17 @@ export async function fetchSeasonData(tvId: string | number, seasonNumber: numbe
   }
 }
 
-import { discoverMovies, discoverTV, searchMedia } from '@/lib/tmdb';
+import { discoverMovies, discoverTV, searchMedia, getWatchProviders } from '@/lib/tmdb';
+
+export async function fetchWatchProviders(type: 'movie' | 'tv' = 'movie') {
+  try {
+    const data = await getWatchProviders(type);
+    return data?.results || [];
+  } catch (error) {
+    console.error('Error fetching watch providers:', error);
+    return [];
+  }
+}
 
 export async function searchMediaAction(query: string) {
   try {

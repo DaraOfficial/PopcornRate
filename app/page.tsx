@@ -24,6 +24,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ q
   let forRent = [];
   let freeMovies = [];
   let freeTv = [];
+  let heroItems: any[] = [];
   let errorMsg = null;
 
   try {
@@ -63,9 +64,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ q
         errorMsg = firstErr instanceof TMDBError ? firstErr.message : "Failed to fetch media from TMDB.";
       }
 
-      // Fetch logos for top 10 nowPlaying items for the Hero Slider
-      const top10NowPlaying = nowPlaying.filter((m: any) => m.backdrop_path).slice(0, 10);
-      await Promise.all(top10NowPlaying.map(async (item: any) => {
+      // Fetch logos for top 7 Trending Today items for the Hero Slider
+      heroItems = trendingToday
+        .filter((m: any) => m.backdrop_path && m.media_type !== 'person')
+        .slice(0, 7);
+      await Promise.all(heroItems.map(async (item: any) => {
         try {
           const type = item.media_type || (item.name ? 'tv' : 'movie');
           const images = await getMediaImages(item.id, type);
@@ -88,9 +91,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ q
       <main className="flex-1 w-full relative overflow-hidden flex flex-col">
         
         {/* Apple TV+ Style Hero Slider (Edge-to-edge, only show when not searching) */}
-        {!query && nowPlaying.length > 0 && (
+        {!query && heroItems.length > 0 && (
           <div className="w-full">
-            <HeroSlider items={nowPlaying.filter((m: any) => m.backdrop_path)} />
+            <HeroSlider items={heroItems} />
           </div>
         )}
 

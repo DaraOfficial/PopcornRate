@@ -71,7 +71,7 @@ export async function getOnTheAirTVShows() {
 
 export async function getStreamingMovies() {
   return fetchTMDB('/discover/movie', {
-    with_watch_providers: '8|119|337|384',
+    with_watch_providers: '8|9|119|337|384|1899',
     watch_region: 'US'
   });
 }
@@ -156,3 +156,10 @@ export async function discoverTV(params: any = {}) {
     ...params
   });
 }
+
+export async function getWatchProviders(type: 'movie' | 'tv' = 'movie') {
+  return fetchTMDB(`/watch/providers/${type}`, {
+    watch_region: 'US'
+  });
+}
+

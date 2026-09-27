@@ -1,20 +1,22 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import MovieCard from './MovieCard';
-import { fetchDiscoverMedia } from '@/app/actions';
-import { ChevronDown, Check, Loader2, Dices } from 'lucide-react';
+import { fetchDiscoverMedia, fetchWatchProviders } from '@/app/actions';
+import { getImageUrl } from '@/lib/tmdb';
+import { ChevronDown, Check, Loader2, Dices, Trash2 } from 'lucide-react';
 import { setAmbientBackdrop } from './AmbientBackground';
 
 const WATCH_PROVIDERS = [
-  { id: 8, name: 'Netflix' },
-  { id: 119, name: 'Prime Video' },
-  { id: 350, name: 'Apple TV' },
-  { id: 337, name: 'Disney+' },
-  { id: 15, name: 'Hulu' },
-  { id: 1899, name: 'Max' },
-  { id: 531, name: 'Paramount+' },
-  { id: 386, name: 'Peacock' }
+  { id: 8, queryIds: '8|1796', name: 'Netflix', logo_path: '/rK1KljqmbvO9HQa1PBFLILWah72.png' },
+  { id: 9, queryIds: '9|119|2100', name: 'Prime Video', logo_path: '/gMZdpavHmxFNnLpMHwVxfqeux2g.png' },
+  { id: 350, queryIds: '350|2|2243', name: 'Apple TV', logo_path: '/9icYBfYFcwgCbky5VdGUIKJ4C5i.png' },
+  { id: 337, queryIds: '337', name: 'Disney+', logo_path: '/5eZ872CghnHFLB1j8grszbrx0dx.png' },
+  { id: 15, queryIds: '15', name: 'Hulu', logo_path: '/44uAnmSqvA4yBOdbPWN8YgQHjWm.png' },
+  { id: 1899, queryIds: '1899|384|1825', name: 'Max', logo_path: '/skypuy7SXuugIQeYg0IglmzoKaS.png' },
+  { id: 2303, queryIds: '2303|2616|531|582|1853', name: 'Paramount+', logo_path: '/4N4BMd0Mm0kHAmF7RZgL5lW3cwc.png' },
+  { id: 386, queryIds: '386|387|2553', name: 'Peacock', logo_path: '/a1UIdq5BrkcAxnxcUhFsNbXnxeu.png' }
 ];
 
 const SORT_OPTIONS = [
@@ -125,24 +127,24 @@ function FilterDropdown({
     <div className="relative pointer-events-auto shrink-0" ref={ref}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="ios-btn-glass text-[14px]"
+        className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-full bg-white/[0.08] hover:bg-white/[0.14] active:scale-95 bg-gradient-to-br from-white/[0.18] to-white/[0.05] backdrop-blur-2xl backdrop-saturate-[1.9] border border-white/[0.24] hover:border-white/[0.38] text-white font-medium text-[13px] tracking-[-0.01em] shadow-[0_6px_18px_rgba(0,0,0,0.22),inset_0_1px_1px_0_rgba(255,255,255,0.42)] transition-all duration-200 select-none cursor-pointer whitespace-nowrap"
       >
-        {activeDot && <div className="w-1.5 h-1.5 rounded-full bg-white mr-0.5 shadow-[0_0_8px_rgba(255,255,255,0.8)]" />}
-        {displayLabel}
+        {activeDot && <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" />}
+        <span>{displayLabel}</span>
         <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180 text-white' : 'text-white/60'}`} />
       </button>
 
       {isOpen && (
         <div 
           ref={listRef}
-          className="absolute left-0 top-full mt-2 min-w-[170px] bg-white/[0.12] bg-gradient-to-br from-white/[0.22] to-white/[0.07] backdrop-blur-3xl backdrop-saturate-[1.9] border border-white/[0.26] rounded-2xl p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.45),inset_0_1px_1px_0_rgba(255,255,255,0.45)] animate-in fade-in slide-in-from-top-2 duration-150 z-50 max-h-72 overflow-y-auto filter-scrollbar overscroll-contain pr-1 scroll-smooth"
+          className="absolute left-0 top-full mt-2 min-w-[165px] bg-white/[0.12] bg-gradient-to-br from-white/[0.22] to-white/[0.07] backdrop-blur-3xl backdrop-saturate-[1.9] border border-white/[0.26] rounded-2xl p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.45),inset_0_1px_1px_0_rgba(255,255,255,0.45)] animate-in fade-in slide-in-from-top-2 duration-150 z-50 max-h-72 overflow-y-auto filter-scrollbar overscroll-contain pr-1 scroll-smooth"
         >
           {options.map((opt: any) => (
              <button
                key={opt.id}
                data-selected={selectedId === opt.id ? "true" : undefined}
                onClick={() => { onChange(opt.id); setIsOpen(false); }}
-               className={`w-full text-left px-3 py-2 rounded-xl text-[13px] transition-all flex items-center justify-between ${selectedId === opt.id ? 'bg-white text-black font-semibold' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}
+               className={`w-full text-left px-3 py-2 rounded-xl text-[13px] transition-all flex items-center justify-between cursor-pointer ${selectedId === opt.id ? 'bg-white text-black font-semibold' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}
              >
                 <span className="truncate pr-2">{opt.label || opt.name}</span>
                 {selectedId === opt.id && <Check className="w-3.5 h-3.5 shrink-0" strokeWidth={3} />}
@@ -174,29 +176,65 @@ function MultiSelectDropdown({
   }, []);
 
   const hasSelection = selectedIds.length > 0;
+  const selectedOptions = options.filter((opt: any) => selectedIds.includes(opt.id));
 
   return (
     <div className="relative pointer-events-auto shrink-0" ref={ref}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="ios-btn-glass text-[14px]"
+        className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-full bg-white/[0.08] hover:bg-white/[0.14] active:scale-95 bg-gradient-to-br from-white/[0.18] to-white/[0.05] backdrop-blur-2xl backdrop-saturate-[1.9] border border-white/[0.24] hover:border-white/[0.38] text-white font-medium text-[13px] tracking-[-0.01em] shadow-[0_6px_18px_rgba(0,0,0,0.22),inset_0_1px_1px_0_rgba(255,255,255,0.42)] transition-all duration-200 select-none cursor-pointer whitespace-nowrap"
       >
-        {hasSelection && <div className="w-1.5 h-1.5 rounded-full bg-white mr-0.5 shadow-[0_0_8px_rgba(255,255,255,0.8)]" />}
-        {label} {hasSelection && <span className="opacity-70 ml-0.5">({selectedIds.length})</span>}
+        {hasSelection ? (
+          <div className="flex items-center -space-x-1.5 mr-0.5">
+            {selectedOptions.slice(0, 3).map((opt: any) =>
+              opt.logo_path ? (
+                <div
+                  key={opt.id}
+                  className="relative w-4 h-4 rounded-full overflow-hidden ring-1 ring-white/40 bg-black shrink-0"
+                >
+                  <Image
+                    src={getImageUrl(opt.logo_path, 'w300')}
+                    alt={opt.name}
+                    fill
+                    sizes="32px"
+                    referrerPolicy="no-referrer"
+                    className="object-cover"
+                  />
+                </div>
+              ) : null
+            )}
+          </div>
+        ) : null}
+        <span>{label}</span>
+        {hasSelection && <span className="opacity-70">({selectedIds.length})</span>}
         <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180 text-white' : 'text-white/60'}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 top-full mt-2 min-w-[170px] bg-white/[0.12] bg-gradient-to-br from-white/[0.22] to-white/[0.07] backdrop-blur-3xl backdrop-saturate-[1.9] border border-white/[0.26] rounded-2xl p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.45),inset_0_1px_1px_0_rgba(255,255,255,0.45)] animate-in fade-in slide-in-from-top-2 duration-150 z-50 max-h-72 overflow-y-auto filter-scrollbar overscroll-contain pr-1 scroll-smooth">
+        <div className="absolute left-0 top-full mt-2 min-w-[210px] bg-white/[0.12] bg-gradient-to-br from-white/[0.22] to-white/[0.07] backdrop-blur-3xl backdrop-saturate-[1.9] border border-white/[0.26] rounded-2xl p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.45),inset_0_1px_1px_0_rgba(255,255,255,0.45)] animate-in fade-in slide-in-from-top-2 duration-150 z-50 max-h-72 overflow-y-auto filter-scrollbar overscroll-contain pr-1 scroll-smooth">
           {options.map((opt: any) => {
              const isSelected = selectedIds.includes(opt.id);
              return (
                <button
                  key={opt.id}
                  onClick={() => toggleOption(opt.id)}
-                 className={`w-full text-left px-3 py-2 rounded-xl text-[13px] transition-all flex items-center justify-between ${isSelected ? 'bg-white/10 text-white font-semibold' : 'text-white/70 hover:bg-white/10 hover:text-white'}`}
+                 className={`w-full text-left px-2.5 py-2 rounded-xl text-[13px] transition-all flex items-center justify-between gap-2.5 cursor-pointer ${isSelected ? 'bg-white/15 text-white font-semibold' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}
                >
-                  <span className="truncate pr-2">{opt.name}</span>
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    {opt.logo_path && (
+                      <div className="relative w-6 h-6 rounded-lg overflow-hidden shrink-0 border border-white/15 bg-black/30 shadow-sm">
+                        <Image
+                          src={getImageUrl(opt.logo_path, 'w300')}
+                          alt={opt.name}
+                          fill
+                          sizes="48px"
+                          referrerPolicy="no-referrer"
+                          className="object-cover"
+                        />
+                      </div>
+                    )}
+                    <span className="truncate pr-1">{opt.name}</span>
+                  </div>
                   {isSelected && <Check className="w-3.5 h-3.5 text-white shrink-0" strokeWidth={3} />}
                </button>
              );
@@ -222,6 +260,7 @@ export default function DiscoverGrid({
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isAutoLoadEnabled, setIsAutoLoadEnabled] = useState(false);
+  const [providerOptions, setProviderOptions] = useState(WATCH_PROVIDERS);
   const observerTarget = useRef<HTMLDivElement>(null);
   
   // Filters
@@ -233,20 +272,55 @@ export default function DiscoverGrid({
   
   const isFirstRender = useRef(true);
 
+  useEffect(() => {
+    let active = true;
+    fetchWatchProviders(type).then((results) => {
+      if (!active || !Array.isArray(results) || results.length === 0) return;
+      const logoMap = new Map<number, string>();
+      results.forEach((p: any) => {
+        if (p?.provider_id && p?.logo_path) {
+          logoMap.set(p.provider_id, p.logo_path);
+        }
+      });
+      if (logoMap.size > 0) {
+        setProviderOptions(
+          WATCH_PROVIDERS.map((prov) => ({
+            ...prov,
+            logo_path: logoMap.get(prov.id) || prov.logo_path,
+          }))
+        );
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [type]);
+
   const loadData = async (pageNum = 1) => {
     try {
       if (pageNum === 1) setIsLoading(true);
       else setIsLoadingMore(true);
 
+      const effectiveSortBy =
+        type === 'tv' && sortBy === 'primary_release_date.desc'
+          ? 'first_air_date.desc'
+          : sortBy;
+
       const params: any = {
         page: pageNum,
-        sort_by: sortBy,
+        sort_by: effectiveSortBy,
         watch_region: 'US',
-        'vote_count.gte': 100 // To filter out obscure stuff when sorting by rating
       };
 
+      if (sortBy === 'vote_average.desc') {
+        params['vote_count.gte'] = 100;
+      }
+
       if (selectedProviders.length > 0) {
-        params.with_watch_providers = selectedProviders.join('|');
+        const providerQueryIds = selectedProviders
+          .map((id) => WATCH_PROVIDERS.find((p) => p.id === id)?.queryIds || String(id))
+          .join('|');
+        params.with_watch_providers = providerQueryIds;
       }
       
       if (selectedGenre) {
@@ -287,6 +361,13 @@ export default function DiscoverGrid({
     );
   };
 
+  const hasActiveFilters =
+    sortBy !== 'popularity.desc' ||
+    selectedProviders.length > 0 ||
+    Boolean(selectedGenre) ||
+    Boolean(selectedYear) ||
+    Boolean(selectedCountry);
+
   const clearAllFilters = () => {
     setSortBy('popularity.desc');
     setSelectedProviders([]);
@@ -296,8 +377,8 @@ export default function DiscoverGrid({
   };
 
   const randomize = () => {
-    // Basic randomizer: jump to a random page among popular items
-    const randomPage = Math.floor(Math.random() * 50) + 1;
+    const maxPage = Math.max(1, Math.min(totalPages || 1, 50));
+    const randomPage = maxPage > 1 ? Math.floor(Math.random() * maxPage) + 1 : 1;
     setPage(randomPage);
     loadData(randomPage);
   };
@@ -354,15 +435,27 @@ export default function DiscoverGrid({
           <p className="text-white/60 text-base md:text-lg">Discover new {type === 'movie' ? 'movies' : 'shows'} to watch</p>
         </div>
         
-        <div className="flex flex-wrap items-center gap-2.5 z-40 relative">
+        <div className="flex flex-wrap items-center gap-2 z-40 relative">
+          {/* Delete / Clear Filters Button (shown when any filter is active) */}
+          {hasActiveFilters && (
+            <button
+              onClick={clearAllFilters}
+              className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/[0.08] hover:bg-white/[0.14] active:scale-95 bg-gradient-to-br from-white/[0.18] to-white/[0.05] backdrop-blur-2xl backdrop-saturate-[1.9] border border-white/[0.24] hover:border-white/[0.38] text-rose-400 hover:text-rose-300 shadow-[0_6px_18px_rgba(0,0,0,0.22),inset_0_1px_1px_0_rgba(255,255,255,0.42)] transition-all duration-200 shrink-0 cursor-pointer select-none animate-in fade-in zoom-in-90"
+              title="Clear all filters"
+              aria-label="Clear all filters"
+            >
+              <Trash2 className="w-4 h-4" strokeWidth={2} />
+            </button>
+          )}
+
           {/* Random / Dice Button */}
           <button 
             onClick={randomize}
-            className="ios-btn-circle shrink-0"
+            className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/[0.08] hover:bg-white/[0.14] active:scale-95 bg-gradient-to-br from-white/[0.18] to-white/[0.05] backdrop-blur-2xl backdrop-saturate-[1.9] border border-white/[0.24] hover:border-white/[0.38] text-white/90 hover:text-white shadow-[0_6px_18px_rgba(0,0,0,0.22),inset_0_1px_1px_0_rgba(255,255,255,0.42)] transition-all duration-200 shrink-0 cursor-pointer select-none"
             title="Randomize"
             aria-label="Randomize"
           >
-            <Dices className="w-[18px] h-[18px]" strokeWidth={2} />
+            <Dices className="w-4 h-4" strokeWidth={2} />
           </button>
           
           <FilterDropdown 
@@ -391,7 +484,7 @@ export default function DiscoverGrid({
 
           <MultiSelectDropdown 
             label="Provider"
-            options={WATCH_PROVIDERS}
+            options={providerOptions}
             selectedIds={selectedProviders}
             toggleOption={toggleProvider}
           />
