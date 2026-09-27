@@ -58,7 +58,7 @@ export default function TVSeasons({ seasons, tvId }: { seasons: any[], tvId: num
         {filteredSeasons.map((season: any) => (
           <div 
             key={season.id || season.season_number} 
-            className={`w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] xl:w-[220px] shrink-0 snap-start group bg-white/5 border rounded-xl overflow-hidden hover:bg-white/10 transition-colors cursor-pointer ${activeSeason === season.season_number ? 'border-white/50 ring-2 ring-white/20' : 'border-white/10'}`}
+            className={`poster-row-item group bg-white/5 border rounded-xl sm:rounded-2xl overflow-hidden hover:bg-white/10 transition-colors cursor-pointer ${activeSeason === season.season_number ? 'border-white/50 ring-2 ring-white/20' : 'border-white/10'}`}
             onClick={() => handleSeasonClick(season.season_number)}
           >
             <div className="aspect-[2/3] w-full relative bg-black/50">

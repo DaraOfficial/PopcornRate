@@ -63,36 +63,52 @@ body {
     }
   }
 
-  /* Sleek custom scrollbar for filter dropdowns & glass popovers */
+  /* Sleek custom scrollbar for search modal, filter dropdowns & glass popovers */
   .filter-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
     overscroll-behavior: contain;
   }
 
+  @supports not selector(::-webkit-scrollbar) {
+    .filter-scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+    }
+  }
+
   .filter-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
+  }
+
+  .filter-scrollbar::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
   }
 
   .filter-scrollbar::-webkit-scrollbar-track {
     background: transparent;
-    margin-block: 6px;
+    margin-block: 8px;
+  }
+
+  .filter-scrollbar::-webkit-scrollbar-corner {
+    background: transparent;
   }
 
   .filter-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.22);
+    background-color: rgba(255, 255, 255, 0.18);
     border-radius: 9999px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 2px solid transparent;
+    background-clip: padding-box;
     transition: background-color 0.2s ease;
   }
 
   .filter-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.45);
+    background-color: rgba(255, 255, 255, 0.38);
   }
 
   .filter-scrollbar::-webkit-scrollbar-thumb:active {
-    background: rgba(255, 255, 255, 0.7);
+    background-color: rgba(255, 255, 255, 0.58);
   }
 
   /* Standard iOS Button System (HIG Capsule, Liquid Glass, Specular Depth) */
@@ -301,5 +317,87 @@ body {
   }
   .ios-segmented-btn-inactive:active {
     transform: scale(0.96);
+  }
+
+  /* Standard Streaming Poster Grid & Row Card Sizing across all screen sizes */
+  .poster-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 0.75rem; /* 12px */
+    row-gap: 1.25rem; /* 20px */
+  }
+  @media (min-width: 390px) {
+    .poster-grid {
+      column-gap: 0.875rem; /* 14px */
+      row-gap: 1.375rem; /* 22px */
+    }
+  }
+  @media (min-width: 500px) {
+    .poster-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 640px) {
+    .poster-grid {
+      column-gap: 1rem; /* 16px */
+      row-gap: 1.5rem; /* 24px */
+    }
+  }
+  @media (min-width: 768px) {
+    .poster-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      column-gap: 1.125rem; /* 18px */
+      row-gap: 1.75rem; /* 28px */
+    }
+  }
+  @media (min-width: 1024px) {
+    .poster-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      column-gap: 1.25rem; /* 20px */
+      row-gap: 2rem; /* 32px */
+    }
+  }
+  @media (min-width: 1280px) {
+    .poster-grid {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      column-gap: 1.25rem; /* 20px */
+      row-gap: 2rem; /* 32px */
+    }
+  }
+
+  .poster-row-item {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+    width: 148px;
+  }
+  @media (min-width: 390px) {
+    .poster-row-item {
+      width: 162px;
+    }
+  }
+  @media (min-width: 500px) {
+    .poster-row-item {
+      width: 170px;
+    }
+  }
+  @media (min-width: 640px) {
+    .poster-row-item {
+      width: 180px;
+    }
+  }
+  @media (min-width: 768px) {
+    .poster-row-item {
+      width: 188px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .poster-row-item {
+      width: 198px;
+    }
+  }
+  @media (min-width: 1280px) {
+    .poster-row-item {
+      width: 206px;
+    }
   }
 }

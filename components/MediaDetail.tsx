@@ -593,7 +593,7 @@ export default function MediaDetail({
         )}
 
         {/* Hero Content (Positioned at Lower-Left) */}
-        <div className="relative z-10 container mx-auto px-4 sm:px-6 md:px-12 lg:px-16 max-w-[1440px] pb-12 md:pb-16 pt-32">
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1440px] pb-12 md:pb-16 pt-32">
           <div className="max-w-xl md:max-w-2xl flex flex-col items-start">
             {/* Title / Movie Logo */}
             {logo?.file_path ? (
@@ -809,7 +809,7 @@ export default function MediaDetail({
       )}
 
       {/* Main Content Details */}
-      <div className="container mx-auto px-4 sm:px-6 md:px-12 lg:px-16 max-w-[1440px] mt-10 md:mt-14">
+      <div className="container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1440px] mt-10 md:mt-14">
         {/* Where to Watch / Streaming Options Card */}
         {(streamProviders.length > 0 || rentProviders.length > 0 || buyProviders.length > 0) && (
           <div className="mb-14 p-5 sm:p-6 rounded-3xl bg-[#161618]/80 border border-white/[0.12] backdrop-blur-2xl shadow-[0_12px_36px_rgba(0,0,0,0.4)]">
@@ -961,11 +961,11 @@ export default function MediaDetail({
                 Cast &amp; Crew
               </h2>
             </div>
-            <ScrollableRow className="flex gap-2.5 min-[380px]:gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory pb-6 pt-2 custom-scrollbar">
+            <ScrollableRow className="flex gap-3 min-[390px]:gap-3.5 sm:gap-4 md:gap-[18px] overflow-x-auto snap-x snap-mandatory pb-6 pt-2 custom-scrollbar">
               {cast.map((person: any) => (
                 <div
                   key={person.id}
-                  className="w-[110px] min-[360px]:w-[120px] min-[420px]:w-[130px] sm:w-[140px] md:w-[150px] shrink-0 snap-start rounded-xl sm:rounded-2xl overflow-hidden bg-[#161618]/80 border border-white/10 shadow-md flex flex-col select-none"
+                  className="w-[120px] min-[390px]:w-[132px] sm:w-[145px] md:w-[156px] lg:w-[166px] shrink-0 snap-start rounded-xl sm:rounded-2xl overflow-hidden bg-[#161618]/80 border border-white/10 shadow-md flex flex-col select-none"
                 >
                   <div className="relative w-full aspect-[2/3] bg-white/5">
                     {person.profile_path ? (
@@ -1122,8 +1122,8 @@ export default function MediaDetail({
               <Sparkles className="w-5 h-5 text-amber-300" />
               <span>More Like This</span>
             </h2>
-            <div className="grid grid-cols-2 min-[480px]:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[1800px]:grid-cols-8 gap-2.5 min-[380px]:gap-3 sm:gap-4 md:gap-5 lg:gap-6 gap-y-6 sm:gap-y-8 md:gap-y-10">
-              {recommendations.slice(0, 14).map((item: any) => (
+            <div className="poster-grid">
+              {recommendations.slice(0, 12).map((item: any) => (
                 <MovieCard key={item.id} movie={item} />
               ))}
             </div>

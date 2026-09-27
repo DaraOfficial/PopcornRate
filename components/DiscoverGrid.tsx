@@ -338,7 +338,7 @@ export default function DiscoverGrid({
   }, [isAutoLoadEnabled, isLoadingMore, page, totalPages]);
 
   return (
-    <div className="container mx-auto px-4 md:px-8 max-w-[1400px] py-24 md:py-28">
+    <div className="container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1440px] py-24 md:py-28">
       {/* Header & Filter Controls Row */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-10">
         <div>
@@ -406,7 +406,7 @@ export default function DiscoverGrid({
           </div>
         ) : items.length > 0 ? (
           <>
-            <div className="grid grid-cols-2 min-[480px]:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[1800px]:grid-cols-8 gap-2.5 min-[380px]:gap-3 sm:gap-4 md:gap-5 lg:gap-6">
+            <div className="poster-grid">
               {items.map((item: any, i: number) => (
                 <MovieCard key={`${item.id}-${i}`} movie={item} />
               ))}

@@ -34,7 +34,7 @@ export default function WatchlistPage() {
   }
 
   return (
-    <main className="flex-1 w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-8 pt-28 pb-20">
+    <main className="flex-1 w-full container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1440px] pt-28 pb-20">
       <div className="flex items-center gap-3 mb-8 sm:mb-10 border-b border-white/10 pb-6">
         <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 flex items-center justify-center border border-white/10 text-amber-400 shrink-0">
           <Bookmark className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" />
@@ -64,7 +64,7 @@ export default function WatchlistPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-2 min-[480px]:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 min-[1800px]:grid-cols-8 gap-2.5 min-[380px]:gap-3 sm:gap-4 md:gap-5 lg:gap-6 gap-y-6 sm:gap-y-8 md:gap-y-10">
+        <div className="poster-grid">
           {watchlist.map((item: any) => (
             <MovieCard 
               key={`${item.type}-${item.id}`} 

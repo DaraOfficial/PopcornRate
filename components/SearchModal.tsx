@@ -124,7 +124,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = '' }: Sear
 
   return (
     <div
-      className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-md flex flex-col items-center justify-start pt-20 sm:pt-28 md:pt-36 p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200"
+      className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-md flex flex-col items-center justify-start pt-20 sm:pt-28 md:pt-36 p-4 sm:p-6 overflow-y-auto hide-scrollbar animate-in fade-in duration-200"
       onClick={handleClose}
       role="dialog"
       aria-modal="true"
@@ -185,7 +185,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = '' }: Sear
         </form>
 
         {/* Search Content Body */}
-        <div className="max-h-[60vh] overflow-y-auto divide-y divide-white/[0.06] overscroll-contain">
+        <div className="max-h-[60vh] overflow-y-auto filter-scrollbar divide-y divide-white/[0.06] overscroll-contain scroll-smooth mr-0.5">
           {/* Results List */}
           {results.length > 0 && (
             <div className="p-2 sm:p-2.5 space-y-1">
