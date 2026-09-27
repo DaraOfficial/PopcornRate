@@ -59,12 +59,12 @@ export default function ScrollableRow({
       >
         <button
           onClick={() => scroll('left')}
-          className="group/arrow p-2 flex items-center justify-center text-white/80 hover:text-white active:scale-90 transition-all duration-200 cursor-pointer focus:outline-none select-none"
+          className="group/arrow p-1.5 flex items-center justify-center text-white/80 hover:text-white active:scale-90 transition-all duration-200 cursor-pointer focus:outline-none select-none"
           aria-label="Scroll left"
         >
           <ChevronLeft
-            className="w-9 h-9 md:w-11 md:h-11 transition-transform duration-200 transform group-hover/arrow:scale-125 group-hover/arrow:-translate-x-0.5 drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]"
-            strokeWidth={2.5}
+            className="w-7 h-7 md:w-8 md:h-8 transition-transform duration-200 transform group-hover/arrow:scale-110 group-hover/arrow:-translate-x-0.5 drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]"
+            strokeWidth={2.2}
           />
         </button>
       </div>
@@ -88,12 +88,12 @@ export default function ScrollableRow({
       >
         <button
           onClick={() => scroll('right')}
-          className="group/arrow p-2 flex items-center justify-center text-white/80 hover:text-white active:scale-90 transition-all duration-200 cursor-pointer focus:outline-none select-none"
+          className="group/arrow p-1.5 flex items-center justify-center text-white/80 hover:text-white active:scale-90 transition-all duration-200 cursor-pointer focus:outline-none select-none"
           aria-label="Scroll right"
         >
           <ChevronRight
-            className="w-9 h-9 md:w-11 md:h-11 transition-transform duration-200 transform group-hover/arrow:scale-125 group-hover/arrow:translate-x-0.5 drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]"
-            strokeWidth={2.5}
+            className="w-7 h-7 md:w-8 md:h-8 transition-transform duration-200 transform group-hover/arrow:scale-110 group-hover/arrow:translate-x-0.5 drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]"
+            strokeWidth={2.2}
           />
         </button>
       </div>

@@ -25,13 +25,13 @@ export default function FreeToWatchRow({
 
   return (
     <div className="">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-6">
+      <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-5 mb-5">
         <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white drop-shadow-sm">
           Free To Watch
         </h2>
         
         {/* iOS Segmented Control Switch */}
-        <div className="ios-segmented-track self-start sm:self-auto overflow-x-auto hide-scrollbar max-w-full">
+        <div className="ios-segmented-track overflow-x-auto hide-scrollbar max-w-full">
           {tabs.map((tab) => (
             <button
               key={tab.id}

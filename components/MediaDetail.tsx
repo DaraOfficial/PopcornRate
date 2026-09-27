@@ -28,11 +28,19 @@ import {
   Clapperboard,
   Layers,
   ListVideo,
+  Settings,
 } from "lucide-react";
 import MovieCard from "./MovieCard";
 import TVEpisodesSection from "./TVEpisodesSection";
 import ScrollableRow from "./ScrollableRow";
 import { setAmbientBackdrop } from "./AmbientBackground";
+import SettingsPanel from "./SettingsPanel";
+import {
+  EmbedSettings,
+  EMBED_SETTINGS_EVENT,
+  getEmbedSettings,
+  buildEmbedUrl,
+} from "@/lib/embedSettings";
 
 export default function MediaDetail({
   media,
@@ -45,10 +53,25 @@ export default function MediaDetail({
 }) {
   const router = useRouter();
   const [isTrailerOpen, setIsTrailerOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [embedSettings, setEmbedSettings] = useState<EmbedSettings>({
+    enabled: false,
+    movieTemplate: "",
+    tvTemplate: "",
+  });
+  const [activeEpisode, setActiveEpisode] = useState<{
+    season: number;
+    episode: number;
+    name?: string;
+  }>({
+    season: initialSeasonData?.season_number || 1,
+    episode: 1,
+  });
   const [isMuted, setIsMuted] = useState(true);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const settingsMenuRef = useRef<HTMLDivElement | null>(null);
 
   // Netflix-style Hero Background Trailer state & refs
   const heroSectionRef = useRef<HTMLDivElement | null>(null);
@@ -81,6 +104,35 @@ export default function MediaDetail({
       setAmbientBackdrop(media.backdrop_path || media.poster_path);
     }
   }, [media?.backdrop_path, media?.poster_path]);
+
+  useEffect(() => {
+    setEmbedSettings(getEmbedSettings());
+
+    const handleEmbedSync = (e: Event) => {
+      const custom = e as CustomEvent<EmbedSettings>;
+      if (custom.detail) {
+        setEmbedSettings(custom.detail);
+      } else {
+        setEmbedSettings(getEmbedSettings());
+      }
+    };
+
+    window.addEventListener(EMBED_SETTINGS_EVENT, handleEmbedSync);
+    return () => window.removeEventListener(EMBED_SETTINGS_EVENT, handleEmbedSync);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        settingsMenuRef.current &&
+        !settingsMenuRef.current.contains(e.target as Node)
+      ) {
+        setIsSettingsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (!media?.id) return;
@@ -523,6 +575,45 @@ export default function MediaDetail({
     return `$${amount.toLocaleString()}`;
   };
 
+  const customEmbedUrl = buildEmbedUrl(embedSettings, {
+    type,
+    id: media.id,
+    season: activeEpisode.season,
+    episode: activeEpisode.episode,
+  });
+
+  const handlePlayAction = (episodeOverride?: {
+    season: number;
+    episode: number;
+    name?: string;
+  }) => {
+    if (episodeOverride) {
+      setActiveEpisode(episodeOverride);
+    }
+
+    if (embedSettings.enabled) {
+      const targetUrl = buildEmbedUrl(embedSettings, {
+        type,
+        id: media.id,
+        season: episodeOverride?.season ?? activeEpisode.season,
+        episode: episodeOverride?.episode ?? activeEpisode.episode,
+      });
+      if (targetUrl) {
+        setIsTrailerOpen(true);
+      } else {
+        setIsSettingsOpen(true);
+        triggerToast("Paste your custom embed link in Settings");
+      }
+      return;
+    }
+
+    if (trailerVideo) {
+      setIsTrailerOpen(true);
+    } else {
+      triggerToast("No trailer video preview found");
+    }
+  };
+
   return (
     <main className="relative w-full max-w-full min-h-screen bg-transparent text-white selection:bg-white/30 pb-24 font-sans overflow-x-clip">
       {/* Top Floating Action Bar */}
@@ -536,8 +627,11 @@ export default function MediaDetail({
           <ChevronLeft className="w-[22px] h-[22px] mr-0.5" strokeWidth={2.2} />
         </button>
 
-        {/* Right Actions: Audio/Replay Control */}
-        <div className="pointer-events-auto flex items-center gap-2.5">
+        {/* Right Actions: Audio/Replay Control & Settings */}
+        <div
+          className="pointer-events-auto flex items-center gap-2.5 relative"
+          ref={settingsMenuRef}
+        >
           <button
             onClick={handleAudioOrReplay}
             className="ios-btn-circle"
@@ -564,6 +658,25 @@ export default function MediaDetail({
               <Volume2 className="w-[18px] h-[18px]" strokeWidth={2.2} />
             )}
           </button>
+
+          <button
+            onClick={() => setIsSettingsOpen((prev) => !prev)}
+            className={`ios-btn-circle ${
+              embedSettings.enabled
+                ? "!border-emerald-400/50 !text-emerald-300"
+                : ""
+            }`}
+            aria-label="Settings"
+            title="Settings & Embed Mode"
+          >
+            <Settings className="w-[18px] h-[18px]" strokeWidth={2.2} />
+          </button>
+
+          {isSettingsOpen && (
+            <div className="absolute right-0 top-full mt-3 z-50">
+              <SettingsPanel onClose={() => setIsSettingsOpen(false)} />
+            </div>
+          )}
         </div>
       </div>
 
@@ -735,13 +848,7 @@ export default function MediaDetail({
             <div className="flex flex-row items-center gap-2.5 sm:gap-3 w-full sm:w-auto select-none">
               {/* 1. Play Button */}
               <button
-                onClick={() => {
-                  if (trailerVideo) {
-                    setIsTrailerOpen(true);
-                  } else {
-                    triggerToast("No trailer video preview found");
-                  }
-                }}
+                onClick={() => handlePlayAction()}
                 className="ios-btn-primary flex-1 sm:flex-none"
                 title="Play"
                 aria-label="Play"
@@ -816,31 +923,42 @@ export default function MediaDetail({
         </div>
       )}
 
-      {/* Trailer Video Player Modal */}
-      {isTrailerOpen && trailerVideo && (
+      {/* Video Player Modal (Custom Embed Mode or YouTube Trailer) */}
+      {isTrailerOpen && (customEmbedUrl || trailerVideo) && (
         <div
-          className="fixed inset-0 z-[110] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-300"
+          className="fixed inset-0 z-[110] bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 md:p-8 animate-in fade-in duration-300"
           onClick={() => setIsTrailerOpen(false)}
         >
           <div
-            className="w-full max-w-5xl aspect-video relative bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/[0.15]"
+            className="w-full max-w-5xl aspect-video relative bg-black rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-white/[0.15]"
             onClick={(e) => e.stopPropagation()}
           >
+            {customEmbedUrl && type === "tv" && (
+              <div className="absolute top-4 left-4 z-10 pointer-events-none bg-black/60 backdrop-blur-xl border border-white/20 px-3.5 py-1.5 rounded-full text-xs font-semibold text-white shadow-lg">
+                Season {activeEpisode.season} &middot; Episode {activeEpisode.episode}
+                {activeEpisode.name ? ` — ${activeEpisode.name}` : ""}
+              </div>
+            )}
             <button
               onClick={() => setIsTrailerOpen(false)}
               className="absolute top-4 right-4 z-10 ios-btn-circle"
-              aria-label="Close trailer modal"
+              aria-label="Close video player modal"
             >
               <X className="w-5 h-5" strokeWidth={2.2} />
             </button>
             <iframe
+              key={customEmbedUrl || trailerVideo?.key}
               width="100%"
               height="100%"
-              src={`https://www.youtube.com/embed/${trailerVideo.key}?autoplay=1`}
-              title="Video Trailer"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              src={
+                customEmbedUrl ||
+                `https://www.youtube.com/embed/${trailerVideo.key}?autoplay=1`
+              }
+              title={customEmbedUrl ? `${title} Player` : "Video Trailer"}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
               allowFullScreen
-              className="border-0"
+              referrerPolicy="origin"
+              className="border-0 w-full h-full"
             />
           </div>
         </div>
@@ -986,11 +1104,11 @@ export default function MediaDetail({
               seasons={media.seasons}
               initialSeasonData={initialSeasonData}
               onPlayEpisode={(ep) => {
-                if (trailerVideo) {
-                  setIsTrailerOpen(true);
-                } else {
-                  triggerToast(`Playing ${ep.name || `Episode ${ep.episode_number}`}`);
-                }
+                handlePlayAction({
+                  season: ep.season_number || 1,
+                  episode: ep.episode_number || 1,
+                  name: ep.name,
+                });
               }}
               onToast={triggerToast}
             />

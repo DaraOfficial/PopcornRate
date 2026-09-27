@@ -98,13 +98,13 @@ export default function LatestTrailersRow({ popular, inTheaters }: { popular: an
       </div>
 
       <div className="relative z-10">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-8">
+        <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-5 mb-6">
           <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white drop-shadow-md">
             Latest Trailers
           </h2>
           
           {/* iOS Segmented Control Switch */}
-          <div className="ios-segmented-track self-start sm:self-auto overflow-x-auto hide-scrollbar max-w-full">
+          <div className="ios-segmented-track overflow-x-auto hide-scrollbar max-w-full">
             {[
               { id: 'popular', label: 'Popular' },
               { id: 'inTheaters', label: 'In Theaters' }
@@ -141,11 +141,11 @@ export default function LatestTrailersRow({ popular, inTheaters }: { popular: an
                   referrerPolicy="no-referrer"
                 />
                 <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors flex items-center justify-center">
-                  <div className="w-14 h-14 bg-white/[0.14] bg-gradient-to-br from-white/[0.26] to-white/[0.06] border border-white/30 rounded-full flex items-center justify-center backdrop-blur-xl backdrop-saturate-[1.9] shadow-[0_8px_24px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.5)] group-hover:scale-110 group-hover:bg-white/[0.22] transition-all">
+                  <div className="w-11 h-11 bg-white/[0.14] bg-gradient-to-br from-white/[0.26] to-white/[0.06] border border-white/30 rounded-full flex items-center justify-center backdrop-blur-xl backdrop-saturate-[1.9] shadow-[0_8px_24px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.5)] group-hover:scale-110 group-hover:bg-white/[0.22] transition-all">
                     {loadingItemId === item.id ? (
-                      <div className="w-6 h-6 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
                     ) : (
-                      <Play className="w-6 h-6 text-white ml-1" fill="currentColor" />
+                      <Play className="w-4 h-4 text-white ml-0.5" fill="currentColor" />
                     )}
                   </div>
                 </div>

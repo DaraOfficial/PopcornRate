@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import BrandLogo from "./BrandLogo";
 import SearchModal from "./SearchModal";
+import SettingsPanel from "./SettingsPanel";
 
 export default function Navbar() {
   const [isHidden, setIsHidden] = useState(false);
@@ -236,48 +237,8 @@ export default function Navbar() {
 
           {/* Settings Popover */}
           {isSettingsOpen && (
-            <div className="absolute right-0 bottom-full mb-4 sm:bottom-auto sm:top-full sm:mt-3 w-72 sm:w-80 bg-white/[0.12] bg-gradient-to-br from-white/[0.22] to-white/[0.07] backdrop-blur-3xl backdrop-saturate-[1.9] border border-white/[0.26] rounded-3xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.45),inset_0_1px_1px_0_rgba(255,255,255,0.45)] animate-in fade-in slide-in-from-bottom-2 sm:slide-in-from-top-2 duration-150 z-50 text-white">
-              <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
-                <div className="flex items-center gap-2">
-                  <Settings className="w-4 h-4 text-amber-400" />
-                  <h3 className="font-bold text-sm tracking-wide">Settings</h3>
-                </div>
-                <button
-                  onClick={() => setIsSettingsOpen(false)}
-                  className="text-white/50 hover:text-white p-1 rounded-full hover:bg-white/10 transition cursor-pointer"
-                  aria-label="Close settings"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="space-y-4 text-xs">
-                <div>
-                  <label className="text-white/50 block mb-1 font-medium">
-                    Data Provider
-                  </label>
-                  <p className="text-white/90 font-semibold flex items-center gap-1.5">
-                    <Check className="w-3.5 h-3.5 text-emerald-400" /> TMDB
-                    Official API Connected
-                  </p>
-                </div>
-
-                <div>
-                  <label className="text-white/50 block mb-1 font-medium">
-                    Region & Streaming
-                  </label>
-                  <p className="text-white/80">
-                    United States (US) &middot; Global Providers
-                  </p>
-                </div>
-
-                <div className="pt-2 border-t border-white/10 flex items-center justify-between">
-                  <span className="text-white/50">App Version</span>
-                  <span className="text-white/70 font-mono text-[11px]">
-                    v1.0.0
-                  </span>
-                </div>
-              </div>
+            <div className="absolute right-0 bottom-full mb-4 sm:bottom-auto sm:top-full sm:mt-3 z-50">
+              <SettingsPanel onClose={() => setIsSettingsOpen(false)} />
             </div>
           )}
         </div>
