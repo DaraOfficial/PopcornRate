@@ -97,7 +97,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ q
           </div>
         )}
 
-        <div className={`container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1440px] relative z-20 ${!query ? '-mt-6 md:-mt-10 pt-2' : 'pt-24 mt-8 md:mt-12'}`}>
+        <div className={`container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1440px] relative z-20 ${!query ? 'mt-6 sm:mt-8 md:mt-12' : 'pt-24 mt-8 md:mt-12'}`}>
           {errorMsg ? (
             <div className="rounded-2xl bg-red-500/10 p-6 border border-red-500/20 max-w-2xl mx-auto flex gap-4 items-start text-red-400 backdrop-blur-xl mb-12">
               <AlertCircle className="h-6 w-6 shrink-0" />
