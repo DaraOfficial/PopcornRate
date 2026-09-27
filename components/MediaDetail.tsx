@@ -946,20 +946,24 @@ export default function MediaDetail({
             >
               <X className="w-5 h-5" strokeWidth={2.2} />
             </button>
-            <iframe
-              key={customEmbedUrl || trailerVideo?.key}
-              width="100%"
-              height="100%"
-              src={
-                customEmbedUrl ||
-                `https://www.youtube.com/embed/${trailerVideo.key}?autoplay=1`
-              }
-              title={customEmbedUrl ? `${title} Player` : "Video Trailer"}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-              allowFullScreen
-              referrerPolicy="origin"
-              className="border-0 w-full h-full"
-            />
+            {customEmbedUrl ? (
+              <iframe
+                allowFullScreen
+                id="watch-iframe"
+                src={customEmbedUrl}
+                className="w-full h-full border-0 absolute inset-0"
+              />
+            ) : (
+              <iframe
+                width="100%"
+                height="100%"
+                src={`https://www.youtube.com/embed/${trailerVideo.key}?autoplay=1`}
+                title="Video Trailer"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full border-0 absolute inset-0"
+              />
+            )}
           </div>
         </div>
       )}
