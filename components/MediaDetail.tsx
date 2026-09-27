@@ -78,11 +78,14 @@ export default function MediaDetail({
   const heroIframeRef = useRef<HTMLIFrameElement | null>(null);
   const readyFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const embedControlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isHoveringEmbedBackRef = useRef(false);
 
   const [shouldMountHeroTrailer, setShouldMountHeroTrailer] = useState(false);
   const [isHeroTrailerPlaying, setIsHeroTrailerPlaying] = useState(false);
   const [isHeroTrailerEnded, setIsHeroTrailerEnded] = useState(false);
   const [isUserIdle, setIsUserIdle] = useState(false);
+  const [showEmbedControls, setShowEmbedControls] = useState(true);
 
   // Best trailer (prioritize Official YouTube Trailer -> YouTube Trailer -> Teaser -> any YouTube video)
   const videosList: any[] = media?.videos?.results || [];
@@ -212,23 +215,92 @@ export default function MediaDetail({
     return () => window.removeEventListener("message", handleMessage);
   }, [shouldMountHeroTrailer, trailerKey]);
 
-  // Pause hero background trailer when fullscreen modal opens, resume when closed
+  // Pause hero background trailer & lock body scroll when modal player opens, resume when closed
   useEffect(() => {
-    const iframeWin = heroIframeRef.current?.contentWindow;
-    if (!iframeWin || !shouldMountHeroTrailer || isHeroTrailerEnded) return;
-
     if (isTrailerOpen) {
-      iframeWin.postMessage(
-        JSON.stringify({ event: "command", func: "pauseVideo", args: [] }),
-        "*"
-      );
+      document.body.style.overflow = "hidden";
     } else {
-      iframeWin.postMessage(
-        JSON.stringify({ event: "command", func: "playVideo", args: [] }),
-        "*"
-      );
+      document.body.style.overflow = "";
     }
+
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsTrailerOpen(false);
+      }
+    };
+    if (isTrailerOpen) {
+      window.addEventListener("keydown", handleEsc);
+    }
+
+    const iframeWin = heroIframeRef.current?.contentWindow;
+    if (iframeWin && shouldMountHeroTrailer && !isHeroTrailerEnded) {
+      if (isTrailerOpen) {
+        iframeWin.postMessage(
+          JSON.stringify({ event: "command", func: "pauseVideo", args: [] }),
+          "*"
+        );
+      } else {
+        iframeWin.postMessage(
+          JSON.stringify({ event: "command", func: "playVideo", args: [] }),
+          "*"
+        );
+      }
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleEsc);
+    };
   }, [isTrailerOpen, shouldMountHeroTrailer, isHeroTrailerEnded]);
+
+  const scheduleEmbedControlsHide = () => {
+    if (embedControlsTimerRef.current) {
+      clearTimeout(embedControlsTimerRef.current);
+    }
+    embedControlsTimerRef.current = setTimeout(() => {
+      if (!isHoveringEmbedBackRef.current) {
+        setShowEmbedControls(false);
+      }
+    }, 2800);
+  };
+
+  const wakeEmbedControls = () => {
+    setShowEmbedControls(true);
+    scheduleEmbedControlsHide();
+  };
+
+  useEffect(() => {
+    if (!isTrailerOpen) {
+      setShowEmbedControls(true);
+      isHoveringEmbedBackRef.current = false;
+      if (embedControlsTimerRef.current) {
+        clearTimeout(embedControlsTimerRef.current);
+      }
+      return;
+    }
+
+    setShowEmbedControls(true);
+    scheduleEmbedControlsHide();
+
+    const handleActivity = () => {
+      wakeEmbedControls();
+    };
+
+    window.addEventListener("mousemove", handleActivity, { passive: true });
+    window.addEventListener("pointermove", handleActivity, { passive: true });
+    window.addEventListener("touchstart", handleActivity, { passive: true });
+    window.addEventListener("keydown", handleActivity, { passive: true });
+
+    return () => {
+      if (embedControlsTimerRef.current) {
+        clearTimeout(embedControlsTimerRef.current);
+      }
+      window.removeEventListener("mousemove", handleActivity);
+      window.removeEventListener("pointermove", handleActivity);
+      window.removeEventListener("touchstart", handleActivity);
+      window.removeEventListener("keydown", handleActivity);
+    };
+  }, [isTrailerOpen]);
 
   // Pause hero background trailer when user scrolls past the hero section, resume when scrolling back up
   useEffect(() => {
@@ -923,37 +995,72 @@ export default function MediaDetail({
         </div>
       )}
 
-      {/* Video Player Modal (Custom Embed Mode or YouTube Trailer) */}
+      {/* Video Player Modal (Full-Screen Custom Embed Mode or YouTube Trailer) */}
       {isTrailerOpen && (customEmbedUrl || trailerVideo) && (
-        <div
-          className="fixed inset-0 z-[110] bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 md:p-8 animate-in fade-in duration-300"
-          onClick={() => setIsTrailerOpen(false)}
-        >
+        customEmbedUrl ? (
           <div
-            className="w-full max-w-5xl aspect-video relative bg-black rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-white/[0.15]"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[150] w-screen h-[100dvh] bg-black overflow-hidden animate-in fade-in duration-200"
+            onMouseMove={wakeEmbedControls}
+            onPointerMove={wakeEmbedControls}
+            onTouchStart={wakeEmbedControls}
           >
-            {customEmbedUrl && type === "tv" && (
-              <div className="absolute top-4 left-4 z-10 pointer-events-none bg-black/60 backdrop-blur-xl border border-white/20 px-3.5 py-1.5 rounded-full text-xs font-semibold text-white shadow-lg">
-                Season {activeEpisode.season} &middot; Episode {activeEpisode.episode}
-                {activeEpisode.name ? ` — ${activeEpisode.name}` : ""}
-              </div>
+            {/* Invisible wake sensor when controls are hidden so moving mouse over the iframe immediately reveals the back button */}
+            {!showEmbedControls && (
+              <div
+                className="absolute inset-0 z-10 bg-transparent"
+                onMouseMove={wakeEmbedControls}
+                onPointerMove={wakeEmbedControls}
+                onTouchStart={wakeEmbedControls}
+                onMouseDown={wakeEmbedControls}
+              />
             )}
+
             <button
               onClick={() => setIsTrailerOpen(false)}
-              className="absolute top-4 right-4 z-10 ios-btn-circle"
-              aria-label="Close video player modal"
+              onMouseEnter={() => {
+                isHoveringEmbedBackRef.current = true;
+                setShowEmbedControls(true);
+                if (embedControlsTimerRef.current) {
+                  clearTimeout(embedControlsTimerRef.current);
+                }
+              }}
+              onMouseLeave={() => {
+                isHoveringEmbedBackRef.current = false;
+                scheduleEmbedControlsHide();
+              }}
+              className={`absolute top-5 left-4 sm:top-6 sm:left-6 md:top-8 md:left-8 z-20 ios-btn-circle transition-all duration-300 ${
+                showEmbedControls
+                  ? "opacity-100 translate-y-0 pointer-events-auto"
+                  : "opacity-0 -translate-y-2 pointer-events-none"
+              }`}
+              aria-label="Go back"
+              title="Go back"
             >
-              <X className="w-5 h-5" strokeWidth={2.2} />
+              <ChevronLeft className="w-[22px] h-[22px] mr-0.5" strokeWidth={2.2} />
             </button>
-            {customEmbedUrl ? (
-              <iframe
-                allowFullScreen
-                id="watch-iframe"
-                src={customEmbedUrl}
-                className="w-full h-full border-0 absolute inset-0"
-              />
-            ) : (
+            <iframe
+              allowFullScreen
+              id="watch-iframe"
+              src={customEmbedUrl}
+              className="w-full h-full border-0 absolute inset-0"
+            />
+          </div>
+        ) : (
+          <div
+            className="fixed inset-0 z-[110] bg-black/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 md:p-8 animate-in fade-in duration-300"
+            onClick={() => setIsTrailerOpen(false)}
+          >
+            <div
+              className="w-full max-w-5xl aspect-video relative bg-black rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-white/[0.15]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setIsTrailerOpen(false)}
+                className="absolute top-4 right-4 z-10 ios-btn-circle"
+                aria-label="Close video player modal"
+              >
+                <X className="w-5 h-5" strokeWidth={2.2} />
+              </button>
               <iframe
                 width="100%"
                 height="100%"
@@ -963,9 +1070,9 @@ export default function MediaDetail({
                 allowFullScreen
                 className="w-full h-full border-0 absolute inset-0"
               />
-            )}
+            </div>
           </div>
-        </div>
+        )
       )}
 
       {/* Main Content Details */}
