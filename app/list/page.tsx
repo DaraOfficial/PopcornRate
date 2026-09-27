@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import MovieCard from '@/components/MovieCard';
 import { Bookmark, LayoutGrid } from 'lucide-react';
 import Link from 'next/link';
+import { setAmbientBackdrop } from '@/components/AmbientBackground';
 
 export default function WatchlistPage() {
   const [watchlist, setWatchlist] = useState<any[]>([]);
@@ -14,7 +15,14 @@ export default function WatchlistPage() {
       try {
         const saved = localStorage.getItem('popcorn-watchlist');
         if (saved) {
-          setWatchlist(JSON.parse(saved));
+          const parsed = JSON.parse(saved);
+          setWatchlist(parsed);
+          const firstItem = Array.isArray(parsed)
+            ? parsed.find((m: any) => m?.backdrop_path || m?.poster_path)
+            : null;
+          if (firstItem) {
+            setAmbientBackdrop(firstItem.backdrop_path || firstItem.poster_path);
+          }
         }
       } catch (err) {
         console.error('Failed to load watchlist', err);

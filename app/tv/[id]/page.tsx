@@ -25,7 +25,7 @@ export default async function TVPage({ params }: { params: Promise<{ id: string 
         <div className="rounded-2xl bg-red-500/10 p-6 border border-red-500/20 max-w-xl flex flex-col gap-4 items-center text-red-400 backdrop-blur-xl">
           <AlertCircle className="h-8 w-8 text-red-400" />
           <p className="text-white/80">{errorMsg}</p>
-          <Link href="/" className="inline-flex items-center gap-2 text-sm text-white bg-[#161618]/70 hover:bg-white/[0.12] border border-white/[0.18] shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_1px_0_0_rgba(255,255,255,0.2)] px-5 py-2.5 rounded-full backdrop-blur-2xl transition-all duration-200 active:scale-95 font-medium select-none">
+          <Link href="/" className="ios-btn-glass">
             <ArrowLeft className="w-4 h-4" /> Back to Browse
           </Link>
         </div>

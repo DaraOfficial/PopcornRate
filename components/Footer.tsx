@@ -17,8 +17,8 @@ export default function Footer() {
   }
 
   return (
-    <footer className="bg-black py-8 md:py-12 mt-auto border-t border-white/5">
-      <div className="container mx-auto px-4 md:px-8 max-w-[1400px] flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-gray-500 font-medium">
+    <footer className="relative z-10 bg-transparent py-8 md:py-12 mt-auto">
+      <div className="container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1440px] flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-white/60 font-medium">
         <div className="flex flex-col items-center md:items-start gap-2">
           <p>Copyright © {new Date().getFullYear()} Popcorn Rate. All rights reserved.</p>
           <div className="flex items-center gap-3 mt-1">

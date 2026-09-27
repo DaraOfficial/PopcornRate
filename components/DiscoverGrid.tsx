@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import MovieCard from './MovieCard';
 import { fetchDiscoverMedia } from '@/app/actions';
 import { ChevronDown, Check, Loader2, Dices } from 'lucide-react';
+import { setAmbientBackdrop } from './AmbientBackground';
 
 const WATCH_PROVIDERS = [
   { id: 8, name: 'Netflix' },
@@ -134,7 +135,7 @@ function FilterDropdown({
       {isOpen && (
         <div 
           ref={listRef}
-          className="absolute left-0 top-full mt-2 min-w-[170px] bg-[#161618]/95 backdrop-blur-3xl border border-white/[0.18] rounded-2xl p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.2)] animate-in fade-in slide-in-from-top-2 duration-150 z-50 max-h-72 overflow-y-auto filter-scrollbar overscroll-contain pr-1 scroll-smooth"
+          className="absolute left-0 top-full mt-2 min-w-[170px] bg-white/[0.12] bg-gradient-to-br from-white/[0.22] to-white/[0.07] backdrop-blur-3xl backdrop-saturate-[1.9] border border-white/[0.26] rounded-2xl p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.45),inset_0_1px_1px_0_rgba(255,255,255,0.45)] animate-in fade-in slide-in-from-top-2 duration-150 z-50 max-h-72 overflow-y-auto filter-scrollbar overscroll-contain pr-1 scroll-smooth"
         >
           {options.map((opt: any) => (
              <button
@@ -186,7 +187,7 @@ function MultiSelectDropdown({
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 top-full mt-2 min-w-[170px] bg-[#161618]/95 backdrop-blur-3xl border border-white/[0.18] rounded-2xl p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.2)] animate-in fade-in slide-in-from-top-2 duration-150 z-50 max-h-72 overflow-y-auto filter-scrollbar overscroll-contain pr-1 scroll-smooth">
+        <div className="absolute left-0 top-full mt-2 min-w-[170px] bg-white/[0.12] bg-gradient-to-br from-white/[0.22] to-white/[0.07] backdrop-blur-3xl backdrop-saturate-[1.9] border border-white/[0.26] rounded-2xl p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.45),inset_0_1px_1px_0_rgba(255,255,255,0.45)] animate-in fade-in slide-in-from-top-2 duration-150 z-50 max-h-72 overflow-y-auto filter-scrollbar overscroll-contain pr-1 scroll-smooth">
           {options.map((opt: any) => {
              const isSelected = selectedIds.includes(opt.id);
              return (
@@ -308,6 +309,13 @@ export default function DiscoverGrid({
       loadData(nextPage);
     }
   };
+
+  useEffect(() => {
+    const firstWithImage = items.find((m: any) => m?.backdrop_path || m?.poster_path);
+    if (firstWithImage) {
+      setAmbientBackdrop(firstWithImage.backdrop_path || firstWithImage.poster_path);
+    }
+  }, [items]);
 
   useEffect(() => {
     if (isFirstRender.current) {

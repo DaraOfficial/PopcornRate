@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import CookieBanner from '@/components/CookieBanner';
+import AmbientBackground from '@/components/AmbientBackground';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -19,10 +20,11 @@ export const viewport: Viewport = {
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="en" className="dark">
-      <body className="font-sans min-h-screen bg-black text-white selection:bg-white/20 selection:text-white antialiased flex flex-col" suppressHydrationWarning>
+      <body className="font-sans min-h-screen bg-[#07070b] text-white selection:bg-white/20 selection:text-white antialiased flex flex-col relative overflow-x-hidden" suppressHydrationWarning>
+        <AmbientBackground />
         <Navbar />
         
-        <div className="flex-1">
+        <div className="flex-1 relative z-10">
           {children}
         </div>
 

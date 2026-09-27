@@ -6,6 +6,7 @@ import ScrollableRow from '@/components/ScrollableRow';
 import { Play, X } from 'lucide-react';
 import { getImageUrl } from '@/lib/tmdb';
 import { fetchTrailerVideo } from '@/app/actions';
+import { setAmbientBackdrop } from './AmbientBackground';
 
 export default function LatestTrailersRow({ popular, inTheaters }: { popular: any[], inTheaters: any[] }) {
   type TabType = 'popular' | 'inTheaters';
@@ -79,28 +80,21 @@ export default function LatestTrailersRow({ popular, inTheaters }: { popular: an
   if (trailerItems.length === 0) return null;
 
   return (
-    <div className="relative -mx-4 md:-mx-8 px-4 md:px-8 py-10 transition-colors duration-500 overflow-hidden">
-      {/* Dynamic Background with transition */}
-      <div className="absolute inset-0 z-0 bg-black">
-        {trailerItems.map((item, index) => (
-          <div 
-            key={`${activeTab}-${item.id}`}
-            className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${hoveredIndex === index ? 'opacity-100' : 'opacity-0'}`}
-          >
+    <div className="relative -mx-4 md:-mx-8 px-4 md:px-8 py-8 transition-colors duration-500 overflow-hidden rounded-3xl">
+      {/* Dynamic Hovered Backdrop Glow (only renders active hovered item for web performance, no opaque black box) */}
+      <div className="absolute inset-0 z-0 pointer-events-none [mask-image:radial-gradient(ellipse_85%_80%_at_50%_50%,black_35%,transparent_100%)] [-webkit-mask-image:radial-gradient(ellipse_85%_80%_at_50%_50%,black_35%,transparent_100%)]">
+        {hoveredIndex !== null && trailerItems[hoveredIndex] && (
+          <div className="absolute inset-0 transition-opacity duration-500 ease-out opacity-100">
             <Image 
-              src={getImageUrl(item.backdrop_path, 'original')}
-              alt={item.title || item.name || 'Trailer Background'}
+              src={getImageUrl(trailerItems[hoveredIndex].backdrop_path, 'w780')}
+              alt={trailerItems[hoveredIndex].title || trailerItems[hoveredIndex].name || 'Trailer Background'}
               fill
-              className="object-cover opacity-60 md:opacity-70 saturate-[1.1] transition-all duration-700"
+              sizes="(max-width: 1024px) 100vw, 1200px"
+              className="object-cover opacity-35 blur-md saturate-150 scale-105 transition-all duration-700"
               referrerPolicy="no-referrer"
             />
-            {/* Gradient overlay to blend with the page */}
-            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black via-black/40 to-transparent" />
-            <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black via-black/20 to-transparent" />
-            <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-black to-transparent" />
-            <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-black to-transparent" />
           </div>
-        ))}
+        )}
       </div>
 
       <div className="relative z-10">
@@ -131,7 +125,10 @@ export default function LatestTrailersRow({ popular, inTheaters }: { popular: an
             <div 
               key={item.id} 
               className="snap-start shrink-0 w-[240px] min-[380px]:w-[280px] sm:w-[320px] md:w-[350px] lg:w-[380px] group cursor-pointer select-none"
-              onMouseEnter={() => setHoveredIndex(index)}
+              onMouseEnter={() => {
+                setHoveredIndex(index);
+                if (item.backdrop_path) setAmbientBackdrop(item.backdrop_path);
+              }}
               onMouseLeave={() => setHoveredIndex(null)}
               onClick={() => handlePlayTrailer(item)}
             >
@@ -143,8 +140,8 @@ export default function LatestTrailersRow({ popular, inTheaters }: { popular: an
                   className="object-cover"
                   referrerPolicy="no-referrer"
                 />
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                  <div className="w-14 h-14 bg-black/60 rounded-full flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform">
+                <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors flex items-center justify-center">
+                  <div className="w-14 h-14 bg-white/[0.14] bg-gradient-to-br from-white/[0.26] to-white/[0.06] border border-white/30 rounded-full flex items-center justify-center backdrop-blur-xl backdrop-saturate-[1.9] shadow-[0_8px_24px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.5)] group-hover:scale-110 group-hover:bg-white/[0.22] transition-all">
                     {loadingItemId === item.id ? (
                       <div className="w-6 h-6 border-2 border-white/50 border-t-white rounded-full animate-spin" />
                     ) : (

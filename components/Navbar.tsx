@@ -119,7 +119,7 @@ export default function Navbar() {
 
         {/* Navigation Capsule Pill moved to Right */}
         <div className="pointer-events-auto relative w-[92vw] sm:w-auto" ref={settingsRef}>
-          <div className="flex items-center justify-between gap-1 bg-[#161618]/70 backdrop-blur-3xl border border-white/[0.18] rounded-full shadow-[0_12px_36px_-6px_rgba(0,0,0,0.7),inset_0_1px_0_0_rgba(255,255,255,0.22)] p-2 sm:p-1.5 w-full">
+          <div className="flex items-center justify-between gap-1 bg-white/[0.08] bg-gradient-to-br from-white/[0.18] to-white/[0.05] backdrop-blur-2xl backdrop-saturate-[1.9] border border-white/[0.25] rounded-full shadow-[0_12px_36px_-6px_rgba(0,0,0,0.35),inset_0_1px_1px_0_rgba(255,255,255,0.45),inset_0_-1px_1px_0_rgba(255,255,255,0.1)] p-2 sm:p-1.5 w-full">
             {/* iOS Segmented Navigation Items */}
             <div className="flex items-center justify-around flex-1 sm:flex-none sm:gap-1">
               <Link
@@ -236,7 +236,7 @@ export default function Navbar() {
 
           {/* Settings Popover */}
           {isSettingsOpen && (
-            <div className="absolute right-0 bottom-full mb-4 sm:bottom-auto sm:top-full sm:mt-3 w-72 sm:w-80 bg-[#161618]/95 backdrop-blur-3xl border border-white/[0.18] rounded-3xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.2)] animate-in fade-in slide-in-from-bottom-2 sm:slide-in-from-top-2 duration-150 z-50 text-white">
+            <div className="absolute right-0 bottom-full mb-4 sm:bottom-auto sm:top-full sm:mt-3 w-72 sm:w-80 bg-white/[0.12] bg-gradient-to-br from-white/[0.22] to-white/[0.07] backdrop-blur-3xl backdrop-saturate-[1.9] border border-white/[0.26] rounded-3xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.45),inset_0_1px_1px_0_rgba(255,255,255,0.45)] animate-in fade-in slide-in-from-bottom-2 sm:slide-in-from-top-2 duration-150 z-50 text-white">
               <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
                 <div className="flex items-center gap-2">
                   <Settings className="w-4 h-4 text-amber-400" />

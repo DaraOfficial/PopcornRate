@@ -1,43 +1,124 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Play, Info } from 'lucide-react';
 import { getImageUrl } from '@/lib/tmdb';
 import PopcornRating from './PopcornRating';
+import { setAmbientBackdrop } from './AmbientBackground';
 
 const GENRE_MAP: Record<number, string> = {
   28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy', 80: 'Crime', 99: 'Documentary', 18: 'Drama', 10751: 'Family', 14: 'Fantasy', 36: 'History', 27: 'Horror', 10402: 'Music', 9648: 'Mystery', 10749: 'Romance', 878: 'Science Fiction', 10770: 'TV Movie', 53: 'Thriller', 10752: 'War', 37: 'Western',
   10759: 'Action & Adventure', 10762: 'Kids', 10763: 'News', 10764: 'Reality', 10765: 'Sci-Fi & Fantasy', 10766: 'Soap', 10767: 'Talk', 10768: 'War & Politics'
 };
 
+const SLIDE_DURATION_MS = 7000;
+
 export default function HeroSlider({ items }: { items: any[] }) {
+  const displayItems = (items || []).slice(0, 5);
+  const slideCount = displayItems.length;
+
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const [isHoveringControls, setIsHoveringControls] = useState(false);
+  const [isInView, setIsInView] = useState(true);
+  const [isTabHidden, setIsTabHidden] = useState(false);
 
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const remainingMsRef = useRef<number>(SLIDE_DURATION_MS);
+  const startTimeRef = useRef<number>(0);
+
+  const isPaused = isHoveringControls || !isInView || isTabHidden;
+
+  const advanceSlide = useCallback(() => {
+    if (slideCount <= 1) return;
+    remainingMsRef.current = SLIDE_DURATION_MS;
+    setCurrentIndex((current) => (current + 1) % slideCount);
+  }, [slideCount]);
+
+  const goToSlide = (index: number) => {
+    if (index === currentIndex) return;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    remainingMsRef.current = SLIDE_DURATION_MS;
+    setCurrentIndex(index);
+  };
+
+  // Sync the project-wide blurred ambient background whenever the active hero slide changes
   useEffect(() => {
-    if (!items || items.length === 0) return;
-    if (isPaused) return;
+    const activeItem = displayItems[currentIndex];
+    if (activeItem) {
+      setAmbientBackdrop(activeItem.backdrop_path || activeItem.poster_path);
+    }
+  }, [currentIndex, displayItems]);
 
-    const interval = setInterval(() => {
-      setCurrentIndex((current) => (current + 1) % Math.min(5, items.length));
-    }, 6000); // 6 seconds per slide
+  // Reset remaining timer duration when currentIndex changes
+  useEffect(() => {
+    remainingMsRef.current = SLIDE_DURATION_MS;
+  }, [currentIndex]);
 
-    return () => clearInterval(interval);
-  }, [items, isPaused, currentIndex]);
+  // Pause slider timer & GPU animations when scrolled out of viewport
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
 
-  if (!items || items.length === 0) return null;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting);
+      },
+      { threshold: 0.15 }
+    );
 
-  const displayItems = items.slice(0, 5); // Max 5 items in slider
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Pause slider timer when browser tab is in background
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsTabHidden(document.hidden);
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  // Precision remaining-time scheduler (stays 100% synced with CSS progress bar on pause/resume)
+  useEffect(() => {
+    if (slideCount <= 1) return;
+
+    if (isPaused) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      if (startTimeRef.current > 0) {
+        const elapsed = performance.now() - startTimeRef.current;
+        remainingMsRef.current = Math.max(200, remainingMsRef.current - elapsed);
+        startTimeRef.current = 0;
+      }
+      return;
+    }
+
+    startTimeRef.current = performance.now();
+    timeoutRef.current = setTimeout(() => {
+      startTimeRef.current = 0;
+      advanceSlide();
+    }, remainingMsRef.current);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, [currentIndex, isPaused, slideCount, advanceSlide]);
+
+  if (slideCount === 0) return null;
 
   return (
-    <div 
-      className="relative w-full overflow-hidden bg-black h-[75vh] min-h-[500px] md:h-[95vh] xl:h-[100vh] md:min-h-[600px] group shadow-2xl"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      onTouchStart={() => setIsPaused(true)}
-      onTouchEnd={() => setIsPaused(false)}
+    <div
+      ref={containerRef}
+      className="relative w-full overflow-hidden bg-transparent h-[75vh] min-h-[500px] md:h-[92vh] xl:h-[96vh] md:min-h-[600px] group"
     >
       <style>{`
         @keyframes sliderProgress {
@@ -45,18 +126,21 @@ export default function HeroSlider({ items }: { items: any[] }) {
           100% { transform: scaleX(1); }
         }
         @keyframes kenBurns {
-          0% { transform: scale(1); }
-          100% { transform: scale(1.05); }
+          0% { transform: scale(1) translateZ(0); }
+          100% { transform: scale(1.045) translateZ(0); }
         }
       `}</style>
-      
+
       {displayItems.map((item, index) => {
         const isActive = index === currentIndex;
+        const prevIndex = (currentIndex - 1 + slideCount) % slideCount;
+        const nextIndex = (currentIndex + 1) % slideCount;
+        const shouldRenderImage = isActive || index === prevIndex || index === nextIndex;
+
         const title = item.title || item.name;
         const type = item.media_type || (item.name ? 'tv' : 'movie');
         const overview = item.overview;
-        
-        const rating = item.vote_average ? item.vote_average.toFixed(1) : 'NR';
+
         const dateStr = item.release_date || item.first_air_date;
         let formattedDate = '';
         if (dateStr) {
@@ -70,68 +154,72 @@ export default function HeroSlider({ items }: { items: any[] }) {
             formattedDate = dateStr;
           }
         }
-        
-        let itemGenres = [];
+
+        let itemGenres: string[] = [];
         if (item.genre_ids) {
           itemGenres = item.genre_ids.map((id: number) => GENRE_MAP[id]).filter(Boolean).slice(0, 2);
         }
-        
+
         return (
           <div
             key={item.id}
-            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+            className={`absolute inset-0 transition-opacity duration-1000 ease-out will-change-[opacity] ${
               isActive ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
             }`}
             aria-hidden={!isActive}
           >
-            {/* Background Image with Ken Burns effect */}
-            <div 
-              className="absolute inset-0 w-full h-full"
-              style={{
-                animationName: isActive ? 'kenBurns' : 'none',
-                animationDuration: '10s',
-                animationTimingFunction: 'ease-out',
-                animationFillMode: 'forwards',
-                animationPlayState: isPaused ? 'paused' : 'running'
-              }}
-            >
-              <Image
-                src={getImageUrl(item.backdrop_path, 'original')}
-                alt={title}
-                fill
-                className="object-cover"
-                referrerPolicy="no-referrer"
-                priority={index === 0}
-              />
+            {/* Masked Hero Backdrop Layer: dissolves smoothly into the unified blurred body background behind it */}
+            <div className="absolute inset-0 w-full h-full pointer-events-none [mask-image:linear-gradient(to_bottom,black_0%,black_52%,rgba(0,0,0,0.72)_72%,rgba(0,0,0,0.25)_88%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_52%,rgba(0,0,0,0.72)_72%,rgba(0,0,0,0.25)_88%,transparent_100%)]">
+              <div
+                className="absolute inset-0 w-full h-full will-change-transform"
+                style={{
+                  animationName: isActive ? 'kenBurns' : 'none',
+                  animationDuration: '9s',
+                  animationTimingFunction: 'ease-out',
+                  animationFillMode: 'forwards',
+                  animationPlayState: isPaused ? 'paused' : 'running',
+                }}
+              >
+                {shouldRenderImage && (
+                  <Image
+                    src={getImageUrl(item.backdrop_path, 'original')}
+                    alt={title}
+                    fill
+                    sizes="100vw"
+                    className="object-cover"
+                    referrerPolicy="no-referrer"
+                    priority={index === 0}
+                  />
+                )}
+              </div>
+
+              {/* Top gradient for fixed navbar legibility */}
+              <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/45 to-transparent" />
+
+              {/* Left subtle shading for hero text legibility (inside mask so it never creates a bottom line) */}
+              <div className="absolute inset-0 w-full md:w-2/3 bg-gradient-to-r from-black/55 via-black/15 to-transparent" />
             </div>
 
-            {/* Top gradient to ensure fixed navbar text is always legible */}
-            <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/60 to-transparent" />
-
-            {/* Bottom gradient to seamlessly merge with the black page background */}
-            <div className="absolute inset-x-0 bottom-0 h-[40%] bg-gradient-to-t from-black via-black/50 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black to-transparent" />
-
-            {/* Left gradient for text readability */}
-            <div className="absolute inset-0 w-full md:w-2/3 bg-gradient-to-r from-black/80 via-black/20 to-transparent" />
-
             {/* Content Container */}
-            <div className="absolute inset-0 flex flex-col justify-end px-4 sm:px-8 md:px-12 lg:px-[max(5%,calc((100vw-1400px)/2+32px))] pb-20 md:pb-24 w-full md:w-3/4 lg:w-2/3 pointer-events-none">
+            <div className="absolute inset-0 flex flex-col justify-end px-4 sm:px-6 md:px-10 lg:px-[max(3rem,calc((100vw-1440px)/2+48px))] pb-20 md:pb-24 w-full md:w-3/4 lg:w-2/3 pointer-events-none">
               <div
-                className={`transition-all duration-1000 transform pointer-events-auto ${
-                  isActive ? 'translate-y-0 opacity-100 delay-300' : 'translate-y-8 opacity-0'
+                className={`transition-all duration-700 ease-out transform pointer-events-auto ${
+                  isActive ? 'translate-y-0 opacity-100 delay-150' : 'translate-y-6 opacity-0'
                 }`}
               >
                 {/* Title or Logo */}
                 {item.logo_path ? (
                   <div className="relative w-48 sm:w-64 md:w-80 h-16 sm:h-20 md:h-28 mb-2 sm:mb-3 drop-shadow-lg">
-                    <Image
-                      src={getImageUrl(item.logo_path, 'original')}
-                      alt={title}
-                      fill
-                      className="object-contain object-left-bottom"
-                      referrerPolicy="no-referrer"
-                    />
+                    {shouldRenderImage && (
+                      <Image
+                        src={getImageUrl(item.logo_path, 'w500')}
+                        alt={title}
+                        fill
+                        sizes="(max-width: 768px) 256px, 320px"
+                        className="object-contain object-left-bottom"
+                        referrerPolicy="no-referrer"
+                      />
+                    )}
                   </div>
                 ) : (
                   <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white mb-2 line-clamp-2 drop-shadow-lg leading-tight">
@@ -157,8 +245,12 @@ export default function HeroSlider({ items }: { items: any[] }) {
                   {overview}
                 </p>
 
-                {/* Actions */}
-                <div className="flex flex-row items-center gap-2.5 sm:gap-3 select-none w-full sm:w-auto">
+                {/* Actions (Pause slider timer only while user hovers interactive CTAs) */}
+                <div
+                  className="flex flex-row items-center gap-2.5 sm:gap-3 select-none w-full sm:w-auto"
+                  onMouseEnter={() => setIsHoveringControls(true)}
+                  onMouseLeave={() => setIsHoveringControls(false)}
+                >
                   <Link
                     href={`/${type}/${item.id}`}
                     className="ios-btn-primary flex-1 sm:flex-none"
@@ -181,27 +273,32 @@ export default function HeroSlider({ items }: { items: any[] }) {
       })}
 
       {/* Modern Animated Pagination Indicators (Apple TV / Netflix style) */}
-      <div className="absolute bottom-6 md:bottom-10 right-4 sm:right-8 md:right-12 lg:right-[max(3rem,calc((100vw-1400px)/2+48px))] z-20 flex justify-end gap-2.5 pointer-events-none">
+      <div
+        className="absolute bottom-6 md:bottom-10 right-4 sm:right-6 md:right-10 lg:right-[max(3rem,calc((100vw-1440px)/2+48px))] z-20 flex justify-end gap-2.5 pointer-events-auto"
+        onMouseEnter={() => setIsHoveringControls(true)}
+        onMouseLeave={() => setIsHoveringControls(false)}
+      >
         {displayItems.map((_, index) => {
           const isActive = index === currentIndex;
           return (
             <button
               key={index}
-              onClick={() => setCurrentIndex(index)}
-              className={`relative overflow-hidden transition-all duration-500 rounded-full h-1.5 md:h-2 pointer-events-auto bg-white/20 hover:bg-white/40 backdrop-blur-md ${
+              onClick={() => goToSlide(index)}
+              className={`relative overflow-hidden transition-all duration-500 rounded-full h-1.5 md:h-2 cursor-pointer bg-white/20 hover:bg-white/40 backdrop-blur-md ${
                 isActive ? 'w-10 sm:w-12 md:w-16' : 'w-2 md:w-2.5'
               }`}
               aria-label={`Go to slide ${index + 1}`}
             >
               {isActive && (
-                <div 
-                  className="absolute inset-0 bg-white origin-left"
+                <div
+                  key={`progress-${currentIndex}`}
+                  className="absolute inset-0 bg-white origin-left will-change-transform"
                   style={{
                     animationName: 'sliderProgress',
-                    animationDuration: '6000ms',
+                    animationDuration: `${SLIDE_DURATION_MS}ms`,
                     animationTimingFunction: 'linear',
                     animationFillMode: 'forwards',
-                    animationPlayState: isPaused ? 'paused' : 'running'
+                    animationPlayState: isPaused ? 'paused' : 'running',
                   }}
                 />
               )}

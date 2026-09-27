@@ -134,7 +134,10 @@ export async function getMediaImages(id: string | number, type: 'movie' | 'tv' =
   return fetchTMDB(`/${type}/${id}/images`, { include_image_language: 'en,null' });
 }
 
-export function getImageUrl(path: string | null | undefined, size: 'w500' | 'original' = 'w500') {
+export function getImageUrl(
+  path: string | null | undefined,
+  size: 'w300' | 'w500' | 'w780' | 'w1280' | 'original' = 'w500'
+) {
   if (!path) return 'https://picsum.photos/seed/movie/500/750';
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
   const cleanPath = path.startsWith('/') ? path : `/${path}`;

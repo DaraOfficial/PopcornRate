@@ -32,6 +32,7 @@ import {
 import MovieCard from "./MovieCard";
 import TVEpisodesSection from "./TVEpisodesSection";
 import ScrollableRow from "./ScrollableRow";
+import { setAmbientBackdrop } from "./AmbientBackground";
 
 export default function MediaDetail({
   media,
@@ -74,6 +75,12 @@ export default function MediaDetail({
     ) ||
     videosList.find((v: any) => v.site === "YouTube");
   const trailerKey: string | null = trailerVideo?.key || null;
+
+  useEffect(() => {
+    if (media?.backdrop_path || media?.poster_path) {
+      setAmbientBackdrop(media.backdrop_path || media.poster_path);
+    }
+  }, [media?.backdrop_path, media?.poster_path]);
 
   useEffect(() => {
     if (!media?.id) return;
@@ -493,7 +500,7 @@ export default function MediaDetail({
   };
 
   return (
-    <main className="relative min-h-screen bg-black text-white selection:bg-white/30 pb-24 font-sans">
+    <main className="relative min-h-screen bg-transparent text-white selection:bg-white/30 pb-24 font-sans">
       {/* Top Floating Action Bar */}
       <div className="absolute top-6 left-6 right-6 md:top-8 md:left-8 md:right-8 z-50 flex items-center justify-between pointer-events-none">
         {/* Navigation Back Button */}
@@ -539,58 +546,62 @@ export default function MediaDetail({
       {/* Hero Section */}
       <div
         ref={heroSectionRef}
-        className="relative w-full min-h-[75vh] md:min-h-[85vh] lg:min-h-[88vh] flex flex-col justify-end overflow-hidden"
+        className="relative z-10 w-full min-h-[75vh] md:min-h-[85vh] lg:min-h-[88vh] flex flex-col justify-end overflow-hidden"
       >
-        {/* Full-bleed Cinematic Backdrop Image (Base Layer) */}
-        {media.backdrop_path ? (
-          <div className="absolute inset-0 z-0">
-            <Image
-              src={getImageUrl(media.backdrop_path, "original")}
-              alt={title}
-              fill
-              className="object-cover object-center md:object-top"
-              priority
-            />
-            {/* Cinematic Gradient Vignettes */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/45 to-transparent w-full md:w-4/5" />
-            <div className="absolute inset-0 bg-black/15" />
-          </div>
-        ) : (
-          <div className="absolute inset-0 z-0 bg-gradient-to-b from-[#1a1a1c] to-black" />
-        )}
-
-        {/* Netflix-Style Auto-Playing Hero Background Trailer */}
-        {shouldMountHeroTrailer && trailerKey && (
-          <div
-            className={`absolute inset-0 z-[1] overflow-hidden pointer-events-none transition-opacity duration-1000 ease-out ${
-              isHeroTrailerPlaying && !isHeroTrailerEnded ? "opacity-100" : "opacity-0"
-            }`}
-            aria-hidden="true"
-          >
-            <div className="absolute inset-x-0 top-0 h-[78%] sm:h-full overflow-hidden">
-              <iframe
-                ref={heroIframeRef}
-                onLoad={handleHeroIframeLoad}
-                src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&iv_load_policy=3&disablekb=1&fs=0`}
-                title={`${title} Hero Trailer`}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[210vw] sm:w-[177.78vh] min-w-full min-h-full sm:min-h-[56.25vw] aspect-video pointer-events-none scale-[1.18] sm:scale-[1.22] border-0"
-                tabIndex={-1}
-              />
-              {/* Smooth bottom blend on mobile portrait */}
-              <div className="sm:hidden absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black via-black/80 to-transparent" />
-            </div>
-            {/* Cinematic Vignettes over Trailer Video */}
-            <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/70 via-black/25 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-transparent" />
+        {/* Hero Media Layer (Backdrop + Trailer) — sits above the global blurred AmbientBackground and dissolves smoothly with the multi-stop gradient */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none [mask-image:linear-gradient(to_bottom,black_0%,black_52%,rgba(0,0,0,0.72)_74%,rgba(0,0,0,0.25)_90%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_0%,black_52%,rgba(0,0,0,0.72)_74%,rgba(0,0,0,0.25)_90%,transparent_100%)]">
+          {/* Full-bleed Cinematic Backdrop Image (Behind Trailer, fades out cleanly once trailer plays) */}
+          {media.backdrop_path ? (
             <div
-              className={`absolute inset-0 bg-gradient-to-r from-black/85 via-black/35 to-transparent w-full md:w-3/4 transition-opacity duration-700 ${
-                isDetailsCollapsed ? "opacity-40" : "opacity-100"
+              className={`absolute inset-0 z-[1] transition-opacity duration-1000 ease-out ${
+                isHeroTrailerPlaying && !isHeroTrailerEnded ? "opacity-0" : "opacity-100"
               }`}
-            />
-          </div>
-        )}
+            >
+              <Image
+                src={getImageUrl(media.backdrop_path, "original")}
+                alt={title}
+                fill
+                sizes="100vw"
+                className="object-cover object-center md:object-top"
+                priority
+              />
+              {/* Subtle Left & Top Shading */}
+              <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/45 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/25 to-transparent w-full md:w-4/5" />
+            </div>
+          ) : (
+            <div className="absolute inset-0 z-[1] bg-gradient-to-b from-white/5 to-transparent" />
+          )}
+
+          {/* Netflix-Style Auto-Playing Hero Background Trailer (Strictly above backdrop & blurred ambient background) */}
+          {shouldMountHeroTrailer && trailerKey && (
+            <div
+              className={`absolute inset-0 z-[2] overflow-hidden pointer-events-none transition-opacity duration-1000 ease-out ${
+                isHeroTrailerPlaying && !isHeroTrailerEnded ? "opacity-100" : "opacity-0"
+              }`}
+              aria-hidden="true"
+            >
+              <div className="absolute inset-0 h-full w-full overflow-hidden">
+                <iframe
+                  ref={heroIframeRef}
+                  onLoad={handleHeroIframeLoad}
+                  src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&iv_load_policy=3&disablekb=1&fs=0`}
+                  title={`${title} Hero Trailer`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[210vw] sm:w-[177.78vh] min-w-full min-h-full sm:min-h-[56.25vw] aspect-video pointer-events-none scale-[1.18] sm:scale-[1.22] border-0"
+                  tabIndex={-1}
+                />
+              </div>
+              {/* Subtle Top & Left Vignettes over Trailer Video */}
+              <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/50 via-black/15 to-transparent" />
+              <div
+                className={`absolute inset-0 bg-gradient-to-r from-black/65 via-black/25 to-transparent w-full md:w-3/4 transition-opacity duration-700 ${
+                  isDetailsCollapsed ? "opacity-35" : "opacity-100"
+                }`}
+              />
+            </div>
+          )}
+        </div>
 
         {/* Hero Content (Positioned at Lower-Left) */}
         <div className="relative z-10 container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1440px] pb-12 md:pb-16 pt-32">
@@ -772,7 +783,7 @@ export default function MediaDetail({
 
       {/* Floating Interactive Toast */}
       {toastMsg && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[120] bg-[#161618]/90 text-white border border-white/20 backdrop-blur-3xl px-5 py-2.5 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.6)] text-sm font-medium flex items-center gap-2 animate-in fade-in slide-in-from-bottom-3 duration-200">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[120] bg-white/[0.12] bg-gradient-to-br from-white/[0.22] to-white/[0.06] text-white border border-white/30 backdrop-blur-3xl backdrop-saturate-[1.9] px-5 py-2.5 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_1px_0_rgba(255,255,255,0.45)] text-sm font-medium flex items-center gap-2 animate-in fade-in slide-in-from-bottom-3 duration-200">
           <Check className="w-4 h-4 text-emerald-400" />
           <span>{toastMsg}</span>
         </div>
@@ -812,15 +823,15 @@ export default function MediaDetail({
       <div className="container mx-auto px-4 sm:px-6 md:px-10 lg:px-12 max-w-[1440px] mt-10 md:mt-14">
         {/* Where to Watch / Streaming Options Card */}
         {(streamProviders.length > 0 || rentProviders.length > 0 || buyProviders.length > 0) && (
-          <div className="mb-14 p-5 sm:p-6 rounded-3xl bg-[#161618]/80 border border-white/[0.12] backdrop-blur-2xl shadow-[0_12px_36px_rgba(0,0,0,0.4)]">
+          <div className="mb-14 p-5 sm:p-6 rounded-3xl bg-white/[0.06] bg-gradient-to-br from-white/[0.12] to-white/[0.03] border border-white/[0.2] backdrop-blur-2xl backdrop-saturate-[1.8] shadow-[0_12px_36px_rgba(0,0,0,0.28),inset_0_1px_1px_0_rgba(255,255,255,0.3)]">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-amber-400/10 border border-amber-400/20 flex items-center justify-center text-amber-400">
+                <div className="w-8 h-8 rounded-full bg-amber-400/15 border border-amber-400/25 flex items-center justify-center text-amber-400">
                   <Tv className="w-4 h-4" />
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-white tracking-tight">Where to Watch</h3>
-                  <p className="text-xs text-white/50">Streaming, rent and purchase options</p>
+                  <p className="text-xs text-white/60">Streaming, rent and purchase options</p>
                 </div>
               </div>
 
@@ -829,10 +840,10 @@ export default function MediaDetail({
                   href={justWatchLink}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="inline-flex items-center gap-1.5 text-xs text-white/60 hover:text-white transition-colors bg-white/5 hover:bg-white/10 border border-white/10 px-3.5 py-1.5 rounded-full self-start sm:self-auto"
+                  className="inline-flex items-center gap-1.5 text-xs text-white/80 hover:text-white transition-all bg-white/[0.08] hover:bg-white/[0.15] bg-gradient-to-br from-white/[0.18] to-white/[0.05] backdrop-blur-xl backdrop-saturate-[1.9] border border-white/25 hover:border-white/40 shadow-[0_4px_16px_rgba(0,0,0,0.2),inset_0_1px_1px_0_rgba(255,255,255,0.4)] px-4 py-2 rounded-full self-start sm:self-auto"
                 >
                   <span>Powered by JustWatch</span>
-                  <ExternalLink className="w-3 h-3 text-white/50" />
+                  <ExternalLink className="w-3 h-3 text-white/60" />
                 </a>
               )}
             </div>
@@ -965,7 +976,7 @@ export default function MediaDetail({
               {cast.map((person: any) => (
                 <div
                   key={person.id}
-                  className="w-[120px] min-[390px]:w-[132px] sm:w-[145px] md:w-[156px] lg:w-[166px] shrink-0 snap-start rounded-xl sm:rounded-2xl overflow-hidden bg-[#161618]/80 border border-white/10 shadow-md flex flex-col select-none"
+                  className="w-[120px] min-[390px]:w-[132px] sm:w-[145px] md:w-[156px] lg:w-[166px] shrink-0 snap-start rounded-xl sm:rounded-2xl overflow-hidden bg-white/[0.06] bg-gradient-to-br from-white/[0.12] to-white/[0.03] backdrop-blur-2xl backdrop-saturate-[1.8] border border-white/[0.18] shadow-[0_8px_24px_rgba(0,0,0,0.25),inset_0_1px_1px_0_rgba(255,255,255,0.25)] flex flex-col select-none"
                 >
                   <div className="relative w-full aspect-[2/3] bg-white/5">
                     {person.profile_path ? (
@@ -996,7 +1007,7 @@ export default function MediaDetail({
         )}
 
         {/* Media Details & Specifications Grid */}
-        <section className="mb-16 md:mb-20 p-6 md:p-8 rounded-3xl bg-[#161618]/60 border border-white/[0.08] backdrop-blur-xl">
+        <section className="mb-16 md:mb-20 p-6 md:p-8 rounded-3xl bg-white/[0.06] bg-gradient-to-br from-white/[0.12] to-white/[0.03] border border-white/[0.18] backdrop-blur-2xl backdrop-saturate-[1.8] shadow-[0_12px_36px_rgba(0,0,0,0.25),inset_0_1px_1px_0_rgba(255,255,255,0.28)]">
           <h2 className="text-lg md:text-xl font-bold text-white mb-6 flex items-center gap-2.5">
             <Layers className="w-5 h-5 text-amber-400" />
             <span>Story &amp; Production Details</span>
@@ -1068,7 +1079,7 @@ export default function MediaDetail({
                 return (
                   <div
                     key={rev.id}
-                    className="p-5 md:p-6 rounded-2xl bg-[#161618]/70 border border-white/[0.08] backdrop-blur-xl flex flex-col justify-between"
+                    className="p-5 md:p-6 rounded-2xl bg-white/[0.06] bg-gradient-to-br from-white/[0.12] to-white/[0.03] border border-white/[0.18] backdrop-blur-2xl backdrop-saturate-[1.8] shadow-[0_8px_28px_rgba(0,0,0,0.25),inset_0_1px_1px_0_rgba(255,255,255,0.28)] flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-3.5">

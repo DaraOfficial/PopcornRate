@@ -39,7 +39,7 @@ export default function ScrollableRow({
     <div className="relative group/row">
       {/* Left Arrow */}
       <div
-        className={`absolute left-0 top-2 bottom-8 z-40 w-12 sm:w-14 md:w-16 transition-all duration-300 hidden md:flex items-center justify-start rounded-l-2xl overflow-hidden ${
+        className={`absolute left-2 top-2 bottom-8 z-40 transition-all duration-300 hidden md:flex items-center justify-center ${
           showLeft
             ? 'opacity-0 group-hover/row:opacity-100 pointer-events-auto'
             : 'opacity-0 pointer-events-none'
@@ -47,11 +47,11 @@ export default function ScrollableRow({
       >
         <button
           onClick={() => scroll('left')}
-          className="group/arrow w-full h-full flex items-center justify-center bg-gradient-to-r from-black/85 via-black/35 to-transparent text-white/75 hover:text-white active:scale-95 transition-all duration-200 cursor-pointer focus:outline-none select-none"
+          className="ios-btn-circle w-11 h-11 md:w-12 md:h-12 hover:scale-105 active:scale-95"
           aria-label="Scroll left"
         >
           <ChevronLeft
-            className="w-9 h-9 md:w-11 md:h-11 transition-all duration-200 transform group-hover/arrow:scale-125 group-hover/arrow:-translate-x-1 drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)]"
+            className="w-6 h-6 text-white pr-0.5"
             strokeWidth={2.5}
           />
         </button>
@@ -68,7 +68,7 @@ export default function ScrollableRow({
 
       {/* Right Arrow */}
       <div
-        className={`absolute right-0 top-2 bottom-8 z-40 w-12 sm:w-14 md:w-16 transition-all duration-300 hidden md:flex items-center justify-end rounded-r-2xl overflow-hidden ${
+        className={`absolute right-2 top-2 bottom-8 z-40 transition-all duration-300 hidden md:flex items-center justify-center ${
           showRight
             ? 'opacity-0 group-hover/row:opacity-100 pointer-events-auto'
             : 'opacity-0 pointer-events-none'
@@ -76,11 +76,11 @@ export default function ScrollableRow({
       >
         <button
           onClick={() => scroll('right')}
-          className="group/arrow w-full h-full flex items-center justify-center bg-gradient-to-l from-black/85 via-black/35 to-transparent text-white/75 hover:text-white active:scale-95 transition-all duration-200 cursor-pointer focus:outline-none select-none"
+          className="ios-btn-circle w-11 h-11 md:w-12 md:h-12 hover:scale-105 active:scale-95"
           aria-label="Scroll right"
         >
           <ChevronRight
-            className="w-9 h-9 md:w-11 md:h-11 transition-all duration-200 transform group-hover/arrow:scale-125 group-hover/arrow:translate-x-1 drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)]"
+            className="w-6 h-6 text-white pl-0.5"
             strokeWidth={2.5}
           />
         </button>

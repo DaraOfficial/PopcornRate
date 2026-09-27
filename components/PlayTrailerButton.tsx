@@ -38,7 +38,7 @@ export default function PlayTrailerButton({ videos, className }: { videos: any[]
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className={className || "flex items-center justify-center gap-2.5 text-white bg-[#161618]/70 hover:bg-white/[0.12] active:scale-95 border border-white/[0.18] shadow-[0_4px_20px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] py-3 px-6 md:py-3.5 md:px-7 rounded-full backdrop-blur-2xl transition-all duration-200 ease-out font-semibold text-[15px] md:text-[16px] select-none w-full sm:w-auto"}
+        className={className || "ios-btn-glass w-full sm:w-auto"}
       >
         <Play className="w-[18px] h-[18px] md:w-5 md:h-5 fill-current" />
         Play Trailer
@@ -55,7 +55,7 @@ export default function PlayTrailerButton({ videos, className }: { videos: any[]
           >
             <button 
               onClick={() => setIsOpen(false)}
-              className="absolute top-4 right-4 z-10 w-10 h-10 bg-[#161618]/80 hover:bg-white/[0.15] border border-white/[0.18] rounded-full flex items-center justify-center text-white/80 hover:text-white transition-all backdrop-blur-2xl shadow-[0_4px_16px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-90"
+              className="absolute top-4 right-4 z-10 ios-btn-circle"
               aria-label="Close trailer modal"
             >
               <X className="w-5 h-5" strokeWidth={2.2} />

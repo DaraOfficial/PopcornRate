@@ -131,7 +131,7 @@ export default function SearchModal({ isOpen, onClose, initialQuery = '' }: Sear
       aria-label="Search"
     >
       <div
-        className="w-full max-w-2xl bg-[#161618]/95 backdrop-blur-3xl border border-white/[0.18] rounded-2xl sm:rounded-3xl shadow-[0_24px_70px_rgba(0,0,0,0.85),inset_0_1px_0_0_rgba(255,255,255,0.22)] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
+        className="w-full max-w-2xl bg-white/[0.10] bg-gradient-to-br from-white/[0.20] to-white/[0.06] backdrop-blur-3xl backdrop-saturate-[1.9] border border-white/[0.26] rounded-2xl sm:rounded-3xl shadow-[0_24px_70px_rgba(0,0,0,0.5),inset_0_1px_1px_0_rgba(255,255,255,0.45)] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input Bar */}
