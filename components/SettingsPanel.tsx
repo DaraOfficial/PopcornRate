@@ -135,7 +135,7 @@ export default function SettingsPanel({ onClose }: { onClose: () => void }) {
       </div>
 
       <div className="space-y-4 text-xs">
-        {/* Embed Mode Toggle Section */}
+        {/* Streaming Mode Toggle Section */}
         <div className="p-3.5 rounded-2xl bg-white/[0.06] border border-white/15 space-y-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
@@ -144,7 +144,7 @@ export default function SettingsPanel({ onClose }: { onClose: () => void }) {
               </div>
               <div>
                 <span className="font-semibold text-white text-[13px] block leading-tight">
-                  Embed Mode
+                  Streaming Mode
                 </span>
                 <span className="text-[11px] text-white/55 block mt-0.5">
                   Use your own custom browser embed link

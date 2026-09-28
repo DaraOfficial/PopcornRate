@@ -1,203 +1,292 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import { ChevronDown, Check, Loader2 } from 'lucide-react';
+import MovieCard from '@/components/MovieCard';
 import ScrollableRow from '@/components/ScrollableRow';
-import { Play, X } from 'lucide-react';
+import { fetchDiscoverMedia, fetchWatchProviders } from '@/app/actions';
 import { getImageUrl } from '@/lib/tmdb';
-import { fetchTrailerVideo } from '@/app/actions';
-import { setAmbientBackdrop } from './AmbientBackground';
 
-export default function LatestTrailersRow({ popular, inTheaters }: { popular: any[], inTheaters: any[] }) {
-  type TabType = 'popular' | 'inTheaters';
-  const [activeTab, setActiveTab] = useState<TabType>('popular');
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  
-  // State for the video player modal
-  const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
-  const [loadingItemId, setLoadingItemId] = useState<number | null>(null);
-  const [videoError, setVideoError] = useState<string | null>(null);
+interface NetworkProvider {
+  id: number;
+  queryIds: string;
+  name: string;
+  logo_path: string;
+}
 
-  // Close modal on Escape key & lock body scroll
+const NETWORK_PROVIDERS: NetworkProvider[] = [
+  { id: 8, queryIds: '8|1796', name: 'Netflix', logo_path: '/rK1KljqmbvO9HQa1PBFLILWah72.png' },
+  { id: 9, queryIds: '9|119|2100', name: 'Prime Video', logo_path: '/gMZdpavHmxFNnLpMHwVxfqeux2g.png' },
+  { id: 350, queryIds: '350|2|2243', name: 'Apple TV', logo_path: '/9icYBfYFcwgCbky5VdGUIKJ4C5i.png' },
+  { id: 337, queryIds: '337', name: 'Disney+', logo_path: '/5eZ872CghnHFLB1j8grszbrx0dx.png' },
+  { id: 15, queryIds: '15', name: 'Hulu', logo_path: '/44uAnmSqvA4yBOdbPWN8YgQHjWm.png' },
+  { id: 1899, queryIds: '1899|384|1825', name: 'Max', logo_path: '/skypuy7SXuugIQeYg0IglmzoKaS.png' },
+  { id: 2303, queryIds: '2303|2616|531|582|1853', name: 'Paramount+', logo_path: '/4N4BMd0Mm0kHAmF7RZgL5lW3cwc.png' },
+  { id: 386, queryIds: '386|387|2553', name: 'Peacock', logo_path: '/a1UIdq5BrkcAxnxcUhFsNbXnxeu.png' },
+];
+
+export default function LatestTrailersRow({
+  movies = [],
+  tv = [],
+}: {
+  movies?: any[];
+  tv?: any[];
+}) {
+  type TabType = 'movies' | 'tv';
+  const [activeTab, setActiveTab] = useState<TabType>('movies');
+  const [selectedProviderId, setSelectedProviderId] = useState<number>(8);
+  const [providerOptions, setProviderOptions] = useState<NetworkProvider[]>(NETWORK_PROVIDERS);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Cache media by `${providerId}-${tab}` initialized with Netflix server-side results
+  const [mediaCache, setMediaCache] = useState<Record<string, any[]>>({
+    '8-movies': movies,
+    '8-tv': tv,
+  });
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const fetchedProvidersRef = useRef<Set<number>>(new Set([8]));
+
+  // Keep initial server props synced for Netflix if props update
   useEffect(() => {
-    if (!playingVideoId) return;
+    setMediaCache((prev) => ({
+      ...prev,
+      '8-movies': movies,
+      '8-tv': tv,
+    }));
+  }, [movies, tv]);
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setPlayingVideoId(null);
+  // Refresh official provider logos from TMDB
+  useEffect(() => {
+    let active = true;
+    fetchWatchProviders('movie').then((results) => {
+      if (!active || !Array.isArray(results) || results.length === 0) return;
+      const logoMap = new Map<number, string>();
+      results.forEach((p: any) => {
+        if (p?.provider_id && p?.logo_path) {
+          logoMap.set(p.provider_id, p.logo_path);
+        }
+      });
+      if (logoMap.size > 0) {
+        setProviderOptions(
+          NETWORK_PROVIDERS.map((prov) => {
+            const candidateIds = [
+              prov.id,
+              ...prov.queryIds.split('|').map((x) => Number(x)),
+            ];
+            const matchedLogo = candidateIds
+              .map((id) => logoMap.get(id))
+              .find(Boolean);
+            return {
+              ...prov,
+              logo_path: matchedLogo || prov.logo_path,
+            };
+          })
+        );
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Close network dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
       }
     };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-    window.addEventListener('keydown', handleKeyDown);
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+  // Fetch Movies & TV Shows for newly selected network if not cached yet
+  useEffect(() => {
+    if (fetchedProvidersRef.current.has(selectedProviderId)) {
+      return;
+    }
+
+    const provider = NETWORK_PROVIDERS.find((p) => p.id === selectedProviderId);
+    if (!provider) return;
+
+    const movieKey = `${selectedProviderId}-movies`;
+    const tvKey = `${selectedProviderId}-tv`;
+
+    let active = true;
+    setIsLoading(true);
+
+    Promise.all([
+      fetchDiscoverMedia('movie', {
+        sort_by: 'popularity.desc',
+        with_watch_providers: provider.queryIds,
+        watch_region: 'US',
+      }),
+      fetchDiscoverMedia('tv', {
+        sort_by: 'popularity.desc',
+        with_watch_providers: provider.queryIds,
+        watch_region: 'US',
+      }),
+    ])
+      .then(([movieData, tvData]) => {
+        if (!active) return;
+        fetchedProvidersRef.current.add(selectedProviderId);
+        setMediaCache((prev) => ({
+          ...prev,
+          [movieKey]: movieData?.results || [],
+          [tvKey]: tvData?.results || [],
+        }));
+      })
+      .catch((err) => {
+        console.error('Failed to fetch network popular media:', err);
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = originalOverflow;
+      active = false;
     };
-  }, [playingVideoId]);
+  }, [selectedProviderId]);
 
-  const getActiveItems = () => {
-    switch (activeTab) {
-      case 'popular': return popular;
-      case 'inTheaters': return inTheaters;
-      default: return popular;
-    }
-  };
+  const activeProvider =
+    providerOptions.find((p) => p.id === selectedProviderId) || providerOptions[0];
 
-  const activeItems = getActiveItems();
-  const trailerItems = activeItems?.filter(item => item && item.backdrop_path).slice(0, 15) || [];
+  const currentKey = `${selectedProviderId}-${activeTab}`;
+  const items =
+    mediaCache[currentKey] ||
+    (activeTab === 'movies' ? movies : tv) ||
+    [];
 
-  const handlePlayTrailer = async (item: any) => {
-    if (!item || !item.id) return;
-    try {
-      setLoadingItemId(item.id);
-      setVideoError(null);
-      const type = item.media_type || (item.name ? 'tv' : 'movie');
-      const data = await fetchTrailerVideo(item.id, type);
-      
-      const videos = data?.results || [];
-      // Prefer official trailers on YouTube
-      const trailer = videos.find((v: any) => v.site === 'YouTube' && v.type === 'Trailer' && v.official && v.key) 
-                   || videos.find((v: any) => v.site === 'YouTube' && v.type === 'Trailer' && v.key)
-                   || videos.find((v: any) => v.site === 'YouTube' && v.key);
-                   
-      if (trailer && trailer.key) {
-        setPlayingVideoId(trailer.key);
-      } else {
-        setVideoError('No trailer available for this title.');
-        setTimeout(() => setVideoError(null), 3500);
-      }
-    } catch {
-      setVideoError('Failed to load trailer.');
-      setTimeout(() => setVideoError(null), 3500);
-    } finally {
-      setLoadingItemId(null);
-    }
-  };
+  if (movies.length === 0 && tv.length === 0 && items.length === 0) return null;
 
-  if (trailerItems.length === 0) return null;
+  const tabs = [
+    { id: 'movies', label: 'Movies' },
+    { id: 'tv', label: 'TV Shows' },
+  ];
 
   return (
-    <div className="relative -mx-4 md:-mx-8 px-4 md:px-8 py-8 transition-colors duration-500 overflow-hidden rounded-3xl">
-      {/* Dynamic Hovered Backdrop Glow (only renders active hovered item for web performance, no opaque black box) */}
-      <div className="absolute inset-0 z-0 pointer-events-none [mask-image:radial-gradient(ellipse_85%_80%_at_50%_50%,black_35%,transparent_100%)] [-webkit-mask-image:radial-gradient(ellipse_85%_80%_at_50%_50%,black_35%,transparent_100%)]">
-        {hoveredIndex !== null && trailerItems[hoveredIndex] && (
-          <div className="absolute inset-0 transition-opacity duration-500 ease-out opacity-100">
-            <Image 
-              src={getImageUrl(trailerItems[hoveredIndex].backdrop_path, 'w780')}
-              alt={trailerItems[hoveredIndex].title || trailerItems[hoveredIndex].name || 'Trailer Background'}
-              fill
-              sizes="(max-width: 1024px) 100vw, 1200px"
-              className="object-cover opacity-35 blur-md saturate-150 scale-105 transition-all duration-700"
-              referrerPolicy="no-referrer"
-            />
-          </div>
-        )}
-      </div>
+    <div className={`relative ${isDropdownOpen ? 'z-40' : 'z-20'}`}>
+      <div className="relative z-30 flex flex-wrap items-center justify-between sm:justify-start gap-3 sm:gap-5 mb-5">
+        <div className="flex items-center gap-2 sm:gap-2.5 text-xl md:text-2xl font-bold tracking-tight text-white">
+          <span className="drop-shadow-sm">Popular on</span>
 
-      <div className="relative z-10">
-        <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-5 mb-6">
-          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white drop-shadow-md">
-            Latest Trailers
-          </h2>
-          
-          {/* iOS Segmented Control Switch */}
-          <div className="ios-segmented-track overflow-x-auto hide-scrollbar max-w-full">
-            {[
-              { id: 'popular', label: 'Popular' },
-              { id: 'inTheaters', label: 'In Theaters' }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => { setActiveTab(tab.id as TabType); setHoveredIndex(null); }}
-                className={activeTab === tab.id ? 'ios-segmented-btn-active' : 'ios-segmented-btn-inactive'}
-              >
-                {tab.label}
-              </button>
-            ))}
+          {/* Inline Network Switcher Dropdown with Network Icon & Name */}
+          <div className="relative pointer-events-auto inline-flex items-center z-40" ref={dropdownRef}>
+            <button
+              type="button"
+              onClick={() => setIsDropdownOpen((prev) => !prev)}
+              className="group inline-flex items-center gap-2 sm:gap-2.5 cursor-pointer select-none focus:outline-none"
+            >
+              {activeProvider.logo_path && (
+                <div className="relative w-6 h-6 sm:w-7 sm:h-7 rounded-lg overflow-hidden shrink-0 border border-white/25 bg-black/40 shadow-[0_4px_12px_rgba(0,0,0,0.4)] transition-transform duration-200 group-hover:scale-105">
+                  <Image
+                    src={getImageUrl(activeProvider.logo_path, 'w300')}
+                    alt={activeProvider.name}
+                    fill
+                    sizes="48px"
+                    referrerPolicy="no-referrer"
+                    className="object-cover"
+                  />
+                </div>
+              )}
+              <span className="border-b-[2.5px] border-white/60 group-hover:border-white transition-colors pb-0.5 leading-none drop-shadow-sm">
+                {activeProvider.name}
+              </span>
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 md:w-5 md:h-5 text-white/70 animate-spin shrink-0 translate-y-[1px]" />
+              ) : (
+                <ChevronDown
+                  strokeWidth={2.5}
+                  className={`w-4 h-4 md:w-5 md:h-5 transition-all duration-200 shrink-0 translate-y-[1px] ${
+                    isDropdownOpen
+                      ? 'rotate-180 text-white'
+                      : 'text-white/65 group-hover:text-white'
+                  }`}
+                />
+              )}
+            </button>
+
+            {isDropdownOpen && (
+              <div className="absolute left-0 top-full mt-3 min-w-[215px] font-normal tracking-normal bg-[#141416]/90 bg-gradient-to-br from-white/[0.22] to-white/[0.08] backdrop-blur-3xl backdrop-saturate-[1.9] border border-white/[0.28] rounded-2xl p-1.5 shadow-[0_24px_60px_rgba(0,0,0,0.75),inset_0_1px_1px_0_rgba(255,255,255,0.45)] animate-in fade-in slide-in-from-top-2 duration-150 z-50 max-h-72 overflow-y-auto filter-scrollbar overscroll-contain pr-1 scroll-smooth">
+                {providerOptions.map((provider) => {
+                  const isSelected = provider.id === selectedProviderId;
+                  return (
+                    <button
+                      key={provider.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedProviderId(provider.id);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-2.5 py-2 rounded-xl text-[13px] transition-all flex items-center justify-between gap-2.5 cursor-pointer ${
+                        isSelected
+                          ? 'bg-white text-black font-semibold'
+                          : 'text-white/85 hover:bg-white/10 hover:text-white font-medium'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {provider.logo_path && (
+                          <div
+                            className={`relative w-6 h-6 rounded-lg overflow-hidden shrink-0 border shadow-sm ${
+                              isSelected
+                                ? 'border-black/15 bg-black/20'
+                                : 'border-white/15 bg-black/30'
+                            }`}
+                          >
+                            <Image
+                              src={getImageUrl(provider.logo_path, 'w300')}
+                              alt={provider.name}
+                              fill
+                              sizes="48px"
+                              referrerPolicy="no-referrer"
+                              className="object-cover"
+                            />
+                          </div>
+                        )}
+                        <span className="truncate pr-1">{provider.name}</span>
+                      </div>
+                      {isSelected && (
+                        <Check className="w-3.5 h-3.5 shrink-0" strokeWidth={3} />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
-        
-        <ScrollableRow className="flex gap-5 overflow-x-auto snap-x snap-mandatory pb-8 pt-2 custom-scrollbar">
-          {trailerItems.map((item: any, index: number) => (
-            <div 
-              key={item.id} 
-              className="snap-start shrink-0 w-[240px] min-[380px]:w-[280px] sm:w-[320px] md:w-[350px] lg:w-[380px] group cursor-pointer select-none"
-              onMouseEnter={() => {
-                setHoveredIndex(index);
-                if (item.backdrop_path) setAmbientBackdrop(item.backdrop_path);
-              }}
-              onMouseLeave={() => setHoveredIndex(null)}
-              onClick={() => handlePlayTrailer(item)}
+
+        {/* iOS Segmented Control Switch (Movies / TV Shows) */}
+        <div className="ios-segmented-track overflow-x-auto hide-scrollbar max-w-full">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id as TabType)}
+              className={
+                activeTab === tab.id
+                  ? 'ios-segmented-btn-active'
+                  : 'ios-segmented-btn-inactive'
+              }
             >
-              <div className="relative aspect-video rounded-xl overflow-hidden mb-3 shadow-[0_8px_20px_rgba(0,0,0,0.4)] group-hover:scale-105 transition-transform duration-300">
-                <Image
-                  src={getImageUrl(item.backdrop_path, 'w500')}
-                  alt={item.title || item.name || 'Movie Trailer'}
-                  fill
-                  className="object-cover"
-                  referrerPolicy="no-referrer"
-                />
-                <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors flex items-center justify-center">
-                  <div className="w-11 h-11 bg-white/[0.14] bg-gradient-to-br from-white/[0.26] to-white/[0.06] border border-white/30 rounded-full flex items-center justify-center backdrop-blur-xl backdrop-saturate-[1.9] shadow-[0_8px_24px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.5)] group-hover:scale-110 group-hover:bg-white/[0.22] transition-all">
-                    {loadingItemId === item.id ? (
-                      <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      <Play className="w-4 h-4 text-white ml-0.5" fill="currentColor" />
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="text-center px-2">
-                <h3 className="text-white font-bold text-base md:text-lg line-clamp-1 drop-shadow-md">
-                  {item.title || item.name}
-                </h3>
-                <p className="text-white/70 text-sm drop-shadow-sm">Official Trailer</p>
-              </div>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className={`relative z-10 transition-opacity duration-200 ${isLoading ? 'opacity-60' : 'opacity-100'}`}>
+        <ScrollableRow>
+          {items.map((item: any) => (
+            <div key={`${selectedProviderId}-${activeTab}-${item.id}`} className="poster-row-item">
+              <MovieCard movie={item} />
             </div>
           ))}
         </ScrollableRow>
       </div>
-      {/* Video Error Message overlay */}
-      {videoError && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-red-600/90 text-white px-5 py-2.5 rounded-full shadow-2xl z-[110] backdrop-blur-md text-sm font-medium border border-red-500/30 animate-in fade-in slide-in-from-bottom-4">
-          {videoError}
-        </div>
-      )}
-
-      {/* Video Player Modal */}
-      {playingVideoId && (
-        <div 
-          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-300"
-          onClick={() => setPlayingVideoId(null)}
-        >
-          <div 
-            className="w-full max-w-5xl aspect-video relative bg-black rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10"
-            onClick={e => e.stopPropagation()}
-          >
-            <button 
-              onClick={() => setPlayingVideoId(null)}
-              className="absolute top-4 right-4 z-10 ios-btn-circle"
-              aria-label="Close trailer modal"
-            >
-              <X className="w-5 h-5" strokeWidth={2.2} />
-            </button>
-            <iframe
-              width="100%"
-              height="100%"
-              src={`https://www.youtube.com/embed/${playingVideoId}?autoplay=1&rel=0&showinfo=0`}
-              title="YouTube video player"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              className="w-full h-full"
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
-

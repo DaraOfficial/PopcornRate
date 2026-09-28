@@ -1,4 +1,4 @@
-import { getPopularMovies, searchMedia, getNowPlayingMovies, getPopularTVShows, getMediaImages, TMDBError, getTrending, getOnTheAirTVShows, getStreamingMovies, getForRentMovies, getFreeMovies, getFreeTVShows } from '@/lib/tmdb';
+import { getPopularMovies, searchMedia, getNowPlayingMovies, getPopularTVShows, getPopularByProvider, getMediaImages, TMDBError, getTrending, getOnTheAirTVShows, getStreamingMovies, getForRentMovies, getFreeMovies, getFreeTVShows } from '@/lib/tmdb';
 import MovieCard from '@/components/MovieCard';
 import HeroSlider from '@/components/HeroSlider';
 import TrendingRow from '@/components/TrendingRow';
@@ -33,9 +33,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ q
       searchResults = data?.results || [];
     } else {
       const settled = await Promise.allSettled([
-        getPopularMovies(),
+        getPopularByProvider('movie', '8|1796'),
         getNowPlayingMovies(),
-        getPopularTVShows(),
+        getPopularByProvider('tv', '8|1796'),
         getTrending('day'),
         getTrending('week'),
         getOnTheAirTVShows(),
@@ -133,8 +133,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ q
             <div className="space-y-12 md:space-y-16 mb-24">
               <TrendingRow today={trendingToday} week={trendingWeek} />
               <LatestTrailersRow 
-                popular={popularMovies}
-                inTheaters={nowPlaying} 
+                movies={popularMovies}
+                tv={popularTVShows} 
               />
               <WhatsPopularRow 
                 streaming={streaming}

@@ -143,7 +143,7 @@ export default function HeroSlider({ items }: { items: any[] }) {
 
                 {/* Meta details (Rating • Date • Genres) */}
                 <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 md:gap-3 mb-4 sm:mb-6 text-[12px] sm:text-[14px] md:text-[15px] font-medium text-white/90 drop-shadow-md">
-                  <PopcornRating rating={item.vote_average} compact className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                  <PopcornRating rating={item.vote_average} compact className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white font-semibold" />
                   {formattedDate && <span className="text-white/60">•</span>}
                   {formattedDate && <span>{formattedDate}</span>}
                   {itemGenres.map((genre: string) => (

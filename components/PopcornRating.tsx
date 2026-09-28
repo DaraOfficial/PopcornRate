@@ -20,17 +20,18 @@ export default function PopcornRating({
   const validRating = typeof rating === 'number' && rating > 0 ? rating : 0;
   const ratingOutOf5 = validRating / 2;
   
-  // Extract width/height classes to apply to the Star SVG directly
-  const sizeClasses = className.split(' ').filter(c => c.startsWith('w-') || c.startsWith('h-')).join(' ');
-  const outerClasses = className.split(' ').filter(c => !c.startsWith('w-') && !c.startsWith('h-') && !c.startsWith('text-[')).join(' ');
+  // Extract width/height classes (including responsive prefixes like sm:w-4) to apply to the Star SVG directly
+  const isSizeClass = (c: string) => /(^|:)(w-|h-)/.test(c);
+  const sizeClasses = className.split(' ').filter(isSizeClass).join(' ');
+  const outerClasses = className.split(' ').filter(c => !isSizeClass(c)).join(' ');
 
   // If sizeClasses is empty, default to w-4 h-4
   const finalSizeClasses = sizeClasses || 'w-4 h-4';
 
   if (compact) {
     return (
-      <div className={`flex items-center gap-1.5 font-medium ${outerClasses}`}>
-        <SharpStar className={`${finalSizeClasses} text-white drop-shadow-sm`} />
+      <div className={`inline-flex items-center gap-1.5 font-semibold ${outerClasses}`}>
+        <SharpStar className={`${finalSizeClasses} shrink-0 text-white drop-shadow-sm`} />
         {showText && <span>{validRating > 0 ? validRating.toFixed(1) : 'NR'}</span>}
       </div>
     );

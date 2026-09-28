@@ -65,6 +65,14 @@ export async function getPopularTVShows() {
   return fetchTMDB('/tv/popular');
 }
 
+export async function getPopularByProvider(type: 'movie' | 'tv', providerQueryIds = '8|1796') {
+  return fetchTMDB(`/discover/${type}`, {
+    sort_by: 'popularity.desc',
+    with_watch_providers: providerQueryIds,
+    watch_region: 'US',
+  });
+}
+
 export async function getOnTheAirTVShows() {
   return fetchTMDB('/tv/on_the_air');
 }

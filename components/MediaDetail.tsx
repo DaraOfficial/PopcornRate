@@ -350,22 +350,13 @@ export default function MediaDetail({
     };
   }, []);
 
-  // Hide hero details & drop title logo above buttons after trailer plays if desktop user is not moving the mouse
+  // Hide hero details & drop title logo above buttons after trailer plays when user is idle (both desktop and mobile)
   useEffect(() => {
     if (!isHeroTrailerPlaying || isHeroTrailerEnded || isTrailerOpen) {
       setIsUserIdle(false);
       if (idleTimerRef.current) {
         clearTimeout(idleTimerRef.current);
       }
-      return;
-    }
-
-    // Only auto-collapse hero text on desktop devices with a fine mouse pointer so mobile touch scrolling/rotation never shifts layout height
-    const canHover =
-      typeof window !== "undefined" &&
-      window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-    if (!canHover) {
-      setIsUserIdle(false);
       return;
     }
 
@@ -387,6 +378,7 @@ export default function MediaDetail({
 
     window.addEventListener("mousemove", handleUserActivity, { passive: true });
     window.addEventListener("mousedown", handleUserActivity, { passive: true });
+    window.addEventListener("touchstart", handleUserActivity, { passive: true });
     window.addEventListener("keydown", handleUserActivity, { passive: true });
 
     return () => {
@@ -395,6 +387,7 @@ export default function MediaDetail({
       }
       window.removeEventListener("mousemove", handleUserActivity);
       window.removeEventListener("mousedown", handleUserActivity);
+      window.removeEventListener("touchstart", handleUserActivity);
       window.removeEventListener("keydown", handleUserActivity);
     };
   }, [isHeroTrailerPlaying, isHeroTrailerEnded, isTrailerOpen]);
@@ -760,7 +753,7 @@ export default function MediaDetail({
                 : ""
             }`}
             aria-label="Settings"
-            title="Settings & Embed Mode"
+            title="Settings & Streaming Mode"
           >
             <Settings className="w-[18px] h-[18px]" strokeWidth={2.2} />
           </button>
